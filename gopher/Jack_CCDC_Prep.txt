@@ -1,0 +1,107 @@
+CCDC Prep 
+
+Windows
+
+Event Viewer is your friend
+Autoruns is your friend
+Process Explorer and TCP View are your friend
+OSSEC works for windows too 
+(agent only, must talk to a Linux server for reporting)
+Change passwords and fast! (Automate if possible)
+Remove unused users and services
+Turn your firewall on and REMOVE EXCEPTIONS
+Turn off Teredo
+
+Mark Russinovich is your friend.
+
+Changing Passwords Fast
+Program one:
+AutoIt (make a binary to do it faster)
+Download one:
+http://bit.ly/bulkpasswordcontrol (AD only - not local)
+Advantage: pseudo random passwords
+Built in one:
+dsquery user ou=Users,dc=testlab,dc=net | dsmod user -pwd RedTeamSucks! -mustchpwd yes
+LAPS for local admin passwords (Not built in, but it is Microsoft tool) https://technet.microsoft.com/en-us/library/security/3062591.aspx
+
+
+Windows Admin - GPO (Security)
+
+Some specific Windows Group Policy to set
+Security Options
+Network security: LAN Manager authentication level - Send NTLMv2  response only\refuse NTLM & LM
+Network security: Do not store LAN Manager hash value on next password change - Enabled
+Network access: Do not allow anonymous enumeration of SAM accounts and shares - Enabled
+Network access: Do not allow anonymous enumeration of SAM accounts - Enabled
+Network access: Allow anonymous SID/name translation - Disabled
+Accounts: Rename administrator account - Rename to something unique (but remember it)
+Interactive logon: Message text for users attempting to log on - sometimes an inject
+
+
+Audit Policy
+Learn to configure windows audit logs and understand the events.
+Audit process tracking - Successes
+Audit account management - Successes, Failures
+Audit logon events - Successes, Failures
+Audit account logon events - Successes, Failures
+
+
+User Rights Assignment
+Debug programs - Remove all groups/users
+Allow log on through Terminal Services - Leave blank to disallow login via TS even if it has been started.
+
+
+Windows Admin - Local GPO
+Local GPO is much faster to push out on small networks, and can be applied to any Windows system, not just domain joined ones (plus if the attacker kicks a box off the domain, domain GPO goes away). There isn't an easy way to do it for all GPO settings, but for security ones 'secedit' is your friend.
+-- Export a config from a VM or other default install for reference:
+secedit /export /cfg checkme.inf
+-- Edit to to have more secure settings then import onto your target system: 
+secedit /configure /db secedit.sdb /cfg securecheckme.inf
+
+
+Web
+
+
+(get the linux admin to install it quickly, and get comfortable installing it on Windows)
+http://blog.spiderlabs.com/2013/04/web-application-defenders-cookbook-ccdc-blue-team-cheatsheet.html (just ignore the honey traps portion, you normally won’t have time to set or monitor for them)
+Passwords… find them, reset them, most likely the Red Team found them first
+Look for administrative interfaces and restrict them to localhost or an “admin” box
+
+
+As quick as possible figure out the use of the web apps provided and how they play into the “company” you are pretending to be.
+Watch logs, get them shipped somewhere, syslog, splunk, something so you can watch them all at once.
+
+Install Splunk
+
+Tools
+Nikto
+Splunk
+
+Web
+Nikto(comes preinstalled)
+Modsecurity ->  https://modsecurity.org/
+BunkerSecurity -> https://github.com/bunkerity/bunkerweb
+NAXSI -> https://github.com/wargio/naxsi
+sqlmap(comes preinstalled)
+is-website-vulnerable -> https://github.com/lirantal/is-website-vulnerable
+Cyclops -> https://github.com/v8blink/Chromium-based-XSS-Taint-Tracking
+
+Places to keep in mind
+Event Viewer, /var/logs, .bash_history
+
+
+For certain machines
+If XP/2k3 then PATCH MS08_067
+
+
+Resources
+https://github.com/cyber-defense-organization/CCDC/blob/master/Windows/Checklists/Windows Hardening Checklist Worksheet.pdf
+https://github.com/WGU-CCDC/Blue-Team-Tools/blob/main/Windows/CCDCprep/checklist/README.md
+https://github.com/WGU-CCDC/Blue-Team-Tools/blob/main/Windows/deepend.ps1
+https://github.com/UCI-CCDC/CCDC
+https://cheatsheetseries.owasp.org/
+https://github.com/simeononsecurity/Blue-Team-Tools
+
+
+
+
