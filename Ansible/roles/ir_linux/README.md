@@ -1,11 +1,5 @@
-# ansible-velociraptor
+# ansible-velociraptor (Linux)
 Ansible role for Velociraptor EDR
-
-## OS Platforms
-
-This role has been tested on the following operating systems:
-
-- Ubuntu 18.04
 
 ## Usage
 
@@ -28,10 +22,6 @@ To use this role in your playbook to install the client, add the code below:
   vars:
     client: true
 ```
-
-## Disclaimer
-
-This role is meant for use in the SANS 699 course and is provided as is.
 
 ## License
 

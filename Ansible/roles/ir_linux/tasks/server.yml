@@ -9,7 +9,7 @@
 
 - name: Download velociraptor binary
   get_url:
-    url: https://github.com/Velocidex/velociraptor/releases/download/v0.3.2/velociraptor-v0.3.2-linux-amd64
+    src: "files/{{ velociraptor-debian }}"
     dest: "{{ velociraptor_dir }}/velociraptor"
     mode: '0750'
 

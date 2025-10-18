@@ -5,15 +5,15 @@
     state: directory
 
 - name: Get velociraptor msi
-  win_get_url:
-    url: "{{ velociraptor_msi_url }}"
-    dest: "{{ _velociraptor_windows_dir }}{{ velociraptor_msi }}"
+  copy:
+    url: "files/{{ velociraptor_file }}"
+    dest: "{{ _velociraptor_windows_dir }}{{ velociraptor_file }}"
 
 - name: Install velociraptor msi
   win_package:
-    path: "{{ _velociraptor_windows_dir }}{{ velociraptor_msi }}"
+    path: "{{ _velociraptor_windows_dir }}{{ velociraptor_file }}"
 
 - name: Copy velociraptor client config
   win_copy:
-    src: "{{ role_path}}/files/{{ velociraptor_client_config }}"
+    src: "{{ role_path }}/files/{{ velociraptor_client_config }}"
     dest: "{{ _velociraptor_windows_dir }}{{ velociraptor_client_config }}"
