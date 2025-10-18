@@ -1,23 +1,9 @@
 ---
-- name: Gather facts to load OS information
-  tags: [ 'ps::install', 'ps::running', 'ps::config', 'ps::monitor', 'ps::pwa_users' ]
-  setup:
-  become: no
+- include: linux_client.yml
+  when: client == true and ansible_os_family != "Windows"
 
-# setup the host
-- name: Setup host
-  tags: [ 'ps::install' ]
-  include_tasks: "host-setup.yml"
+- include: windows_client.yml
+  when: client == true and ansible_os_family == "Windows"
 
-# Install the perfsonar repos and base OS updates
-- name: "{{ ansible_os_family }} Install"
-  tags: [ 'ps::install' ]
-  include_tasks: "{{ ansible_os_family }}.yml"
-  when: ansible_os_family | default('') != ''
-
-- name: Install perfSONAR additional packages
-  tags: [ 'ps::install' ]
-  package:
-    name: "{{ item }}"
-    state: latest
-  with_items: "{{ perfsonar_optional_packages | default([]) }}"
+- include: server.yml
+  when: server == true
