@@ -1,44 +1,15 @@
-- name: setup perfSONAR archival Node
+- name: Incident Response (Linux)
+  hosts:
+    - linux
   tags:
-    - archive
-    - setup-archive
+    - ir
   roles:
-    - perfsonar-archivenode
+    - ir_linux
 
-- name: config hosts with with baremetal perfsonar-testpoint
+- name: Incident Response (Windows)
+  hosts:
+    - windows
   tags:
-    - all-testpoints
-    - setup-baremetal-testpoints
-    - install-baremetal-testpoints
+    - ir
   roles:
-    - perfsonar-testpoint-baremetal
-
-- name: perfSONAR docker testpoints
-  tags:
-    - all-testpoints
-    - setup-docker-testpoints
-    - install-docker-testpoints
-  roles:
-    - perfsonar-testpoint
-
-- name: config archival node for testpoints
-  tags:
-    - archive
-    - all-testpoints
-    - setup-docker-testpoints
-    - setup-baremetal-testpoints
-  roles:
-    - role: perfsonar-archivenode # only run the psconfig configure tasks
-      tags: [ 'ps::config' ]
-
-- name: deprovision perfSONAR testpoints
-  tags:
-    - deprovision-testpoints
-  roles:
-    - perfsonar-testpoint-deprovision
-
-- name: perfSONAR ps-webadmin Node
-  tags:
-    - webadmin
-  roles:
-    - perfsonar-webadmin
+    - ir_windows

@@ -1,3 +1,0 @@
-{
-        "graph": "{{ perfsonar_pwa_docker_data_root }}/docker"
-}

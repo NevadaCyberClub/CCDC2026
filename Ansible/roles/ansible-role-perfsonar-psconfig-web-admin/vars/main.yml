@@ -1,8 +1,0 @@
----
-# vars file for perfsonar-psconfig-web-admin
-
-perfsonar_bundle: docker-ce 
-perfsonar_optional_packages:
-  - docker-ce-cli 
-  - containerd.io
-  - python-pip
