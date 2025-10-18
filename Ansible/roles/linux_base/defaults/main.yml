@@ -1,0 +1,45 @@
+---
+# defaults file for perfsonar-testpoint
+
+#####
+# This first set of variables should be adapted for your deployment.
+
+# Additional perfSONAR packages to be installed on the perfSONAR host
+# See list at http://docs.perfsonar.net/install_debian.html#optional-packages
+# If you don't want any optional package to be installed, make this an empty list.
+#perfsonar_optional_packages: []
+perfsonar_optional_packages:
+  - perfsonar-toolkit-ntp
+  - perfsonar-toolkit-security
+  - perfsonar-toolkit-servicewatcher
+  - perfsonar-toolkit-sysctl
+  - perfsonar-toolkit-systemenv-testpoint
+
+perfsonar_ntp_servers: []
+
+timesync_service:
+  Debian: ntp
+  RedHat: ntpd
+  default: ntp
+
+ntp_service: "{{ timesync_service[ansible_os_family] | default(timesync_service['default']) }}"
+
+# Disable ssh root access
+perfsonar_disable_root_ssh: True
+
+# setting the perfsonar_archive-* variables will register testpoints with the archivers
+perfsonar_archive_auth_interfaces:
+ - "{{ ansible_all_ipv4_addresses }}"
+
+perfsonar_archive_hosts:
+ - "{{ groups['ps_archivenode'] }}"
+
+perfsonar_archive_uid: perfsonar
+
+#####
+# The variables here below shouldn't need to be altered for your deployment, unless you know what you're doing.
+
+# List of perfSONAR services to make sure are running
+# We define the list as a reference to another list, so that we can merge and override in other roles
+perfsonar_services: "{{ perfsonar_testpoint_services }}"
+perfsonar_os_specific_services: "{{ perfsonar_testpoint_os_specific_services }}"

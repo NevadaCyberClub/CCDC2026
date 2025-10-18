@@ -1,0 +1,44 @@
+- name: setup perfSONAR archival Node
+  tags:
+    - archive
+    - setup-archive
+  roles:
+    - perfsonar-archivenode
+
+- name: config hosts with with baremetal perfsonar-testpoint
+  tags:
+    - all-testpoints
+    - setup-baremetal-testpoints
+    - install-baremetal-testpoints
+  roles:
+    - perfsonar-testpoint-baremetal
+
+- name: perfSONAR docker testpoints
+  tags:
+    - all-testpoints
+    - setup-docker-testpoints
+    - install-docker-testpoints
+  roles:
+    - perfsonar-testpoint
+
+- name: config archival node for testpoints
+  tags:
+    - archive
+    - all-testpoints
+    - setup-docker-testpoints
+    - setup-baremetal-testpoints
+  roles:
+    - role: perfsonar-archivenode # only run the psconfig configure tasks
+      tags: [ 'ps::config' ]
+
+- name: deprovision perfSONAR testpoints
+  tags:
+    - deprovision-testpoints
+  roles:
+    - perfsonar-testpoint-deprovision
+
+- name: perfSONAR ps-webadmin Node
+  tags:
+    - webadmin
+  roles:
+    - perfsonar-webadmin

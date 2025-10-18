@@ -1,0 +1,33 @@
+- name: ensure perfSONAR config directory exists
+  tags: [ 'ps::config' ]
+  file:
+    path: "{{ perfsonar_psconfig_location }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: create perfSONAR archive configuration file
+  tags: [ 'ps::config' ]
+  template:
+    src: psconfig.json.j2
+    dest: "{{ perfsonar_psconfig_location }}/psconfig.json"
+    owner: root
+    group: root
+    mode: '0644'
+    lstrip_blocks: yes
+
+- name: validate perfSONAR archive configuration file
+  tags: [ 'ps::config' ]
+  command: "psconfig validate {{ perfsonar_psconfig_location }}/psconfig.json"
+  register: psconfig_validate
+  failed_when: psconfig_validate.rc != 0
+  args:
+    creates: "/usr/local/perfsonar_psconfig/etc/psconfig.json"
+
+- name: publish perfSONAR archive configuration file
+  tags: [ 'ps::config' ]
+  command: "psconfig publish {{ perfsonar_psconfig_location }}/psconfig.json"
+  args:
+    creates: "/usr/local/perfsonar_psconfig/etc/psconfig.json"
+  when: psconfig_validate is defined and psconfig_validate.rc == 0

@@ -1,0 +1,35 @@
+- name: get docker images
+  shell: >
+    docker image ls --format '{{ "{{.Repository}}:{{.Tag}}" }}'
+  args:
+    executable: /bin/bash
+  register: docker_images_result
+  changed_when: False
+  failed_when: docker_images_result.rc != 0
+
+- name: remove systemd version of perfsonar-testpoint-docker
+  command: docker compose -f "{{ perfsonar_testpoint_docker_deploy_path }}/docker-compose.systemd.yml" down --volumes --remove-orphans
+  args:
+    chdir: "{{ perfsonar_testpoint_docker_deploy_path }}"
+  environment:
+    COMPOSE_HTTP_TIMEOUT: 300
+  register: docker_compose_result
+  when: "'{{ perfsonar_testpoint_docker_image_name }}:{{ perfsonar_testpoint_docker_tag }}' in docker_images_result.stdout"
+  failed_when: docker_compose_result.rc != 0
+  changed_when: "'Stopping' in docker_compose_result.stdout or 'Removing' in docker_compose_result.stdout"
+
+- name: Ensure {{ perfsonar_testpoint_docker_name }} container is removed
+  shell: >
+    docker rm -f {{ perfsonar_testpoint_docker_name }}
+  register: docker_rm_result
+  changed_when: "'{{ perfsonar_testpoint_docker_name }}' in docker_rm_result.stdout"
+  failed_when: docker_rm_result.rc != 0 and "'No such container' not in docker_rm_result.stderr"
+  until: "'{{ perfsonar_testpoint_docker_name }}' not in docker_rm_result.stdout"
+  retries: 5
+  delay: 6
+
+- name: Remove {{ perfsonar_testpoint_docker_name }} image
+  shell: docker image rm -f {{ perfsonar_testpoint_docker_image_name }}:{{ perfsonar_testpoint_docker_tag }}
+  register: docker_image_rm_result
+  changed_when: "'Untagged' in docker_image_rm_result.stdout or 'Deleted' in docker_image_rm_result.stdout"
+  failed_when: docker_image_rm_result.rc != 0 and "'No such image' not in docker_image_rm_result.stderr"

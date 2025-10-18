@@ -1,0 +1,224 @@
+{
+    "_meta":{
+        "display-name": "Network Measurements"
+    },
+
+    "archives": {
+        "http_archive": {
+            "archiver": "http",
+            "data": {
+                "schema": 3,
+                "_url": "https://{{ archive_hostname }}/logstash",
+                "verify-ssl": false,
+                "op": "put",
+                "_headers": {
+                    "x-ps-observer": "{%raw%}{% scheduled_by_address %}{%endraw%}",
+                    "content-type": "application/json",
+                    "Authorization": "Basic {{ logstash_auth_token }}"
+                }
+            },
+            "_meta": {
+                "esmond_url": "https://{{ archive_hostname }}/esmond/perfsonar/archive/"
+            }
+        }
+        {#
+        "old_http_archive": {
+            "archiver": "http",
+            "data": {
+                "schema": 2,
+                "_url": "https://{{ archive_hostname }}/logstash",
+                "op": "put",
+                "_headers": {
+                    "x-ps-observer": "{%raw%}{% scheduled_by_address %}{%endraw%}",
+                    "content-type": "application/json"
+                },
+                "_meta": {
+                    "esmond_url": "http://{{ archive_hostname }}/esmond/perfsonar/archive/"
+                }
+            }
+        }
+        #}
+    },
+
+    {# archive_hostname and hostnames of all testpoints #}
+    "addresses": {
+        {% set combined_testpoint_groups = groups['ps_testpoints_re_network'] + groups['ps_baremetal_testpoints_re_network'] %}
+        {% for host in combined_testpoint_groups %}
+            {% if hostvars[host]['internal_ip'] is defined %}
+            "{{ hostvars[host]['inventory_hostname'] }}": { "address": "{{ hostvars[host]['internal_ip'] }}" }{{"," if not loop.last else "" }}
+            {% else %}
+            "{{ hostvars[host]['inventory_hostname'] }}": { "address": "{{ hostvars[host]['ansible_host'] }}" }{{"," if not loop.last else "" }}
+            {% endif %}
+        {% endfor %}
+    },
+
+    "groups": {
+        {# central_to_testpoints tests from central node to testpoints; not between testpoints #}
+        {# "central_to_testpoints": {
+            "type": "disjoint",
+            "a-addresses": [
+                { "name": "{{ archive_hostname }}" }
+            ],
+            "b-addresses": [
+                {% for host in groups['ps_testpoint'] %}
+                { "name": "{{ hostvars[host]['inventory_hostname'] }}" }{{"," if not loop.last else "" }}
+                {% endfor %}
+            ]
+        }, #}
+        {# testpoints has a mesh topology between testpoints #}
+        "testpoints": {
+            "type": "mesh",
+            "addresses": [
+                {% for host in combined_testpoint_groups %}
+                { "name": "{{ hostvars[host]['inventory_hostname'] }}" }{{"," if not loop.last else "" }}
+                {% endfor %}
+            ]
+        }
+    },
+
+    "tests": {
+        "test_throughput": {
+            "type": "throughput",
+            "spec": {
+                "source": "{%raw%}{% address[0] %}{%endraw%}",
+                "dest": "{%raw%}{% address[1] %}{%endraw%}",
+                "duration": "PT30S"
+            }
+        },
+        "test_latencybg": {
+            "type": "latencybg",
+            "spec": {
+                "source": "{%raw%}{% address[0] %}{%endraw%}",
+                "dest": "{%raw%}{% address[1] %}{%endraw%}",
+                "flip": "{%raw%}{% flip %}{%endraw%}"
+            }
+        },
+        "test_latency": {
+            "type": "latency",
+            "spec": {
+                "source": "{%raw%}{% address[0] %}{%endraw%}",
+                "dest": "{%raw%}{% address[1] %}{%endraw%}",
+                "flip": "{%raw%}{% flip %}{%endraw%}"
+            }
+        },
+        "test_trace": {
+            "type": "trace",
+            "spec": {
+                "source": "{%raw%}{% address[0] %}{%endraw%}",
+                "dest": "{%raw%}{% address[1] %}{%endraw%}"
+            }
+        },
+        "test_rtt": {
+            "type": "rtt",
+            "spec": {
+                "source": "{%raw%}{% address[0] %}{%endraw%}",
+                "dest": "{%raw%}{% address[1] %}{%endraw%}"
+            }
+        }
+    },
+
+    "schedules": {
+        "schedule_PT15M": {
+            "repeat": "PT15M",
+            "sliprand": true,
+            "slip": "PT5M"
+        },
+        "schedule_PT1H": {
+            "repeat": "PT1H",
+            "sliprand": true,
+            "slip": "PT10M"
+        },
+        "schedule_PT30M": {
+            "repeat": "PT30M",
+            "sliprand": true,
+            "slip": "PT5M"
+        }
+    },
+
+    "tasks": {
+        {# mesh tasks #}
+        "testpoint_mesh_task_throughput": {
+            "group": "testpoints",
+            "test": "test_throughput",
+            "schedule": "schedule_PT1H",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "Throughput Tests",
+                "display-task-group": [ "Testpoint Mesh" ]
+            }
+        },
+        "testpoint_mesh_task_latencybg": {
+            "group": "testpoints",
+            "test": "test_latencybg",
+            "schedule": "schedule_PT30M",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "Loss Tests",
+                "display-task-group": [ "Testpoint Mesh" ]
+            }
+        },
+        "testpoint_mesh_task_latency": {
+            "group": "testpoints",
+            "test": "test_latency",
+            "schedule": "schedule_PT30M",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "Loss Tests",
+                "display-task-group": [ "Testpoint Mesh" ]
+            }
+        },
+        "testpoint_mesh_task_trace": {
+            "group": "testpoints",
+            "test": "test_trace",
+            "schedule": "schedule_PT30M",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "Traceroute Tests",
+                "display-task-group": [ "Testpoint Mesh" ]
+            }
+        },
+        "testpoint_mesh_task_rtt": {
+            "group": "testpoints",
+            "test": "test_rtt",
+            "schedule": "schedule_PT15M",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "RTT Tests",
+                "display-task-group": [ "Testpoint Mesh" ]
+            }
+        }
+        {# central_to_testpoints tasks #}
+        {#
+        "central_to_testpoints_task_throughput": {
+            "group": "central_to_testpoints",
+            "test": "test_throughput",
+            "schedule": "schedule_PT2M",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "Throughput Tests",
+                "display-task-group": [ "Central to Testpoint" ]
+            }
+        },
+        "central_to_testpoints_task_latencybg": {
+            "group": "central_to_testpoints",
+            "test": "test_latencybg",
+            "schedule": "schedule_PT1M",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "Loss Tests",
+                "display-task-group": [ "Archive to Testpoint" ]
+            }
+        },
+        "central_to_testpoints_task_trace": {
+            "group": "central_to_testpoints",
+            "test": "test_trace",
+            "schedule": "schedule_PT10M",
+            "archives": [ "http_archive" ],
+            "reference": {
+                "display-task-name": "Traceroute Tests",
+                "display-task-group": [ "Archive to Testpoint" ]
+            }
+        }
+        #}
+    }
+}

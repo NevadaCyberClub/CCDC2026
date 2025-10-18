@@ -1,0 +1,26 @@
+- name: Ensure firewalld is started and enabled
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Stop enforcement of SELinux immediately
+  ansible.builtin.command: setenforce 0
+  register: selinux_setenforce
+  failed_when: selinux_setenforce.rc != 0 and "SELinux is disabled" not in selinux_setenforce.stderr
+
+- name: Ensure /etc/selinux/config has SELINUX=disabled
+  ansible.builtin.lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
+    backup: yes
+
+# setup /etc/hosts
+- name: Ensure /etc/hosts
+  template:
+    src: etc.hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'

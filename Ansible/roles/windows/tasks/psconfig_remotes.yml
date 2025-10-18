@@ -1,0 +1,8 @@
+---
+# psconfig_remotes.yml
+#
+- name: psconfig remote delete {{ item.url }}
+  tags: [ 'ps::config' ]
+  command: docker exec {{ perfsonar_testpoint_docker_name }} psconfig remote delete {{ item.url }}
+  register: psconfig_remotes_delete
+  ignore_errors: True

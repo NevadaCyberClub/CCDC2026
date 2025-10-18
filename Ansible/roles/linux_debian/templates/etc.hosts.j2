@@ -1,0 +1,32 @@
+# {{ ansible_date_time.iso8601 }} — managed by Ansible
+127.0.0.1   localhost
+
+{# todo: add all ips held by host into etc hosts #}
+
+# testpoint nodes
+{# combine testpoint groups to handle baremetal testpoints #}
+{% if groups['ps_baremetal_testpoint'] is defined %}
+{%   set combined_testpoint = groups['ps_testpoint'] + groups['ps_baremetal_testpoint'] %}
+{% else %}
+{%   set combined_testpoint = groups['ps_testpoint'] %}
+{% endif %}
+{# loop over combined testpoint list #}
+{% for h in combined_testpoint %}
+{%   set ip = hostvars[h].internal_ip
+     | default(hostvars[h].ansible_default_ipv4.address) %}
+{{ ip }} {{ h }}
+{% endfor %}
+
+# archive node
+{% for h in groups['ps_archivenode'] %}
+{%   set ip = hostvars[h].internal_ip
+     | default(hostvars[h].ansible_default_ipv4.address) %}
+{{ ip }} {{ archive_hostname }}
+{% endfor %}
+
+# frontend node
+{% for h in groups['ps_frontendnode'] %}
+{%   set ip = hostvars[h].internal_ip
+     | default(hostvars[h].ansible_default_ipv4.address) %}
+{{ ip }} {{ h }}
+{% endfor %}

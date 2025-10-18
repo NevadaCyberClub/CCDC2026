@@ -1,0 +1,9 @@
+---
+perfsonar_grafana_bundle: perfsonar-grafana
+
+grafana_packages:
+  - perfsonar-elmond
+  - perfsonar-grafana
+  - perfsonar-grafana-toolkit
+  - perfsonar-psconfig-hostmetrics
+  - perfsonar-psconfig-publisher

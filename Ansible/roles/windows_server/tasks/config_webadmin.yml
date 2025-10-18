@@ -1,0 +1,49 @@
+---
+- name: ensure {{ item }} directory exists
+  tags: [ 'ps::install' ]
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /usr/local/data/mongo
+    - /usr/local/data/auth
+    - "{{ docker_webadmin_deploy_path }}"
+
+- name: copy files to /etc/pwa
+  tags: [ 'ps::install' ]
+  synchronize:
+    src: pwa
+    dest: /etc/
+    recursive: yes
+    delete: no
+
+- name: copy docker compose to {{ docker_webadmin_deploy_path }}
+  tags: [ 'ps::install' ]
+  copy:
+    src: docker-compose.yml
+    dest: "{{ docker_webadmin_deploy_path }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: run generate_nginx_cert.sh
+  tags: [ 'ps::install' ]
+  command: /etc/pwa/scripts/generate_nginx_cert.sh
+  args:
+    creates: /etc/pwa/nginx/certs/cert.pem
+
+- name: render index.js
+  template:
+    src: index.js.j2
+    dest: /etc/pwa/index.js
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: render auth/index.js
+  template:
+    src: auth-index.js.j2
+    dest: /etc/pwa/auth/index.js
+    owner: root
+    group: root
+    mode: '0644'

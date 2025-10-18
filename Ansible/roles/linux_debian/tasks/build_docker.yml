@@ -1,0 +1,34 @@
+- name: get docker images
+  tags: [ 'ps::install' ]
+  shell: >
+    docker image ls --format '{{ "{{.Repository}}:{{.Tag}}" }}'
+  args:
+    executable: /bin/bash
+  register: docker_images_result
+  changed_when: False
+  failed_when: docker_images_result.rc != 0
+
+- name: build systemd version of perfsonar-testpoint-docker
+  tags: [ 'ps::install' ]
+  command: docker compose -f "{{ perfsonar_testpoint_docker_deploy_path }}/docker-compose.systemd.yml" up -d --build
+  args:
+    chdir: "{{ perfsonar_testpoint_docker_deploy_path }}"
+  environment:
+    COMPOSE_HTTP_TIMEOUT: 300
+  register: docker_compose_result
+  when: "'{{ perfsonar_testpoint_docker_image_name }}:{{ perfsonar_testpoint_docker_tag }}' not in docker_images_result.stdout"
+  failed_when: docker_compose_result.rc != 0 and "'is already in use by container' not in docker_compose_result.stderr"
+  changed_when: "'Creating' in docker_compose_result.stdout or 'Recreating' in docker_compose_result.stdout or 'Starting' in docker_compose_result.stdout"
+
+- name: Ensure {{ perfsonar_testpoint_docker_name }} container is running
+  tags: [ 'ps::install', 'ps::running' ]
+  shell: >
+    docker ps --filter "name={{ perfsonar_testpoint_docker_name }}" --filter "status=running" --format '{{ "{{.Names}}" }}'
+  args:
+    executable: /bin/bash
+  register: docker_ps_result
+  changed_when: False
+  failed_when: docker_ps_result.rc != 0
+  until: docker_ps_result.stdout.find('{{ perfsonar_testpoint_docker_name }}') != -1
+  retries: 5
+  delay: 6

@@ -1,0 +1,31 @@
+- name: Ensure firewalld is started and enabled
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Create firewalld public zone file with limited IPs
+  template:
+    src: firewalld_public_zone.xml.j2
+    dest: /etc/firewalld/zones/public.xml
+    mode: '0644'
+
+- name: reload firewalld
+  systemd_service:
+    name: firewalld
+    state: reloaded
+
+- name: publish created psconfig
+  tags: [ 'ps::config' ]
+  shell: >
+    psconfig publish /etc/perfsonar/perfsonar_psconfigs/psconfig.json
+  register: psconfig_publish_result
+  failed_when: psconfig_publish_result.rc != 0
+
+  # add own config
+- name: Attempt to publish psconfig
+  tags: [ 'ps::running' ]
+  command: psconfig remote add "https://{{ archive_hostname }}/psconfig/psconfig.json"
+  register: psconfig_publish
+  changed_when: "'Replaced' in psconfig_publish.stdout"
+  failed_when: psconfig_publish.rc != 0

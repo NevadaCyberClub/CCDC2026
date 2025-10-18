@@ -1,0 +1,14 @@
+- name: Copy Apache configuration for perfSONAR Webadmin
+  tags: [ 'ps::config' ]
+  ansible.builtin.copy:
+    src: apache-webadmin.conf
+    dest: /etc/httpd/conf.d/apache-webadmin.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure Apache is started and enabled
+  service:
+    name: httpd
+    state: started
+    enabled: yes

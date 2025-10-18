@@ -1,0 +1,7 @@
+---
+# handlers file for perfsonar-archive
+
+- name: restart apache
+  service:
+    name: "{{ apache_service }}"
+    state: restarted

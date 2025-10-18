@@ -1,0 +1,10 @@
+# variables specific to RedHat OS family
+---
+# Default NTP service name: ntpd
+
+# List of perfSONAR services to check are running on RedHat hosts
+perfsonar_testpoint_os_specific_services:
+  - httpd
+  - postgresql
+
+perfsonar_toolkit_config_daemon: perfsonar-configdaemon

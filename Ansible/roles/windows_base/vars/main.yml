@@ -1,0 +1,10 @@
+---
+# vars file for perfsonar-psconfig-publisher
+# Variables defined in this file have precedence over a lot of other places
+# This means they cannot be overwritten in inventory or playbook.
+# See http://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable
+perfsonar_bundle: perfsonar-psconfig-publisher
+perfsonar_optional_packages: []
+
+# List of perfSONAR services to check are running
+perfsonar_psconfig_publisher_services:

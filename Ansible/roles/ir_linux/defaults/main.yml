@@ -1,0 +1,16 @@
+perfsonar_os_update: False
+
+perfsonar_release: release
+
+perfsonar_current_repo_version: '0.11-1'
+
+perfsonar_optional_packages:
+  - perl
+  - perl-Data-Validate-Domain
+  - vim
+  - tmux
+  - net-tools
+  - rsync
+
+    # - perfsonar-logstash
+    # - perfsonar-toolkit-sysctl

@@ -1,0 +1,29 @@
+- name: run docker-compose
+  tags: [ 'ps::install' ]
+  command: docker compose -f "{{ docker_webadmin_deploy_path }}/docker-compose.yml" up -d
+  args:
+    chdir: "{{ docker_webadmin_deploy_path }}"
+  environment:
+    COMPOSE_HTTP_TIMEOUT: 300
+  register: docker_compose_result
+  failed_when: docker_compose_result.rc != 0 and "'is already in use by container' not in docker_compose_result.stderr"
+  changed_when: "'Creating' in docker_compose_result.stdout or 'Recreating' in docker_compose_result.stdout or 'Starting' in docker_compose_result.stdout"
+
+- name: pause for docker containers to start
+  tags: [ 'ps::install', 'ps::running' ]
+  pause:
+    seconds: 10
+
+- name: Ensure webadmin_docker_containers containers are running
+  tags: [ 'ps::install', 'ps::running' ]
+  shell: >
+    docker ps --filter "name={{ item }}" --filter "status=running" --format '{{"{{.Names}}"}}'
+  args:
+    executable: /bin/bash
+  with_items: "{{ webadmin_docker_containers }}"
+  register: docker_ps_result
+  changed_when: false
+  failed_when: docker_ps_result.rc != 0
+  until: docker_ps_result.stdout.find(item) != -1
+  retries: 2
+  delay: 3

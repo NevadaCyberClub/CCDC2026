@@ -1,0 +1,32 @@
+---
+# This needs to be done for all tags
+- name: Gather facts to load OS information
+  setup:
+  become: no
+
+- name: only allow RedHat distributions to run this task
+  fail:
+    msg: "This role is only supported on RedHat distributions. Please use the perfsonar-testpoint role for other distributions."
+  when: ansible_os_family != 'RedHat'
+
+- name: Render the 'public' firewalld zone definition (overrides with basic ssh service)
+  ansible.builtin.template:
+    src: firewalld_public_zone.xml.j2
+    dest: /etc/firewalld/zones/public.xml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload firewalld so the new zone is loaded
+  ansible.builtin.systemd:
+    name: firewalld
+    state: reloaded
+
+- name: delete remote registration if it exists
+  include_tasks: psconfig_remotes.yml
+  with_items: "{{ perfsonar_psconfig_remote_remotes | default([]) }}"
+  when:
+    - item.url | default('') != ''
+
+- name: Ensure docker images, build files, and containers are removed
+  include_tasks: deprovision_docker.yml

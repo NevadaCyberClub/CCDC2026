@@ -1,0 +1,23 @@
+- name: install perfSONAR archival node packages
+  tags: [ 'ps::install' ]
+  include_tasks: install_archive.yml
+
+- name: Create firewalld public zone file with limited IPs
+  tags: [ 'ps::config' ]
+  template:
+    src: firewalld_public_zone.xml.j2
+    dest: /etc/firewalld/zones/public.xml
+    mode: '0644'
+
+- name: reload firewalld
+  systemd_service:
+    name: firewalld
+    state: reloaded
+
+- name: install perfSONAR grafana packages
+  tags: [ 'ps::install' ]
+  include_tasks: install_grafana.yml
+
+- name: setup perfSONAR configuration
+  tags: [ 'ps::config' ]
+  include_tasks: psconfig_setup.yml

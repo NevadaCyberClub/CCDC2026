@@ -1,0 +1,153 @@
+---
+# tasks file for pwa_users.yml
+
+- name: get initial user list from PWA host
+  tags: [ 'ps::pwa_users' ]
+  shell: docker exec -it sca-auth pwa_auth listuser --short|cut -f 3|sed '1d'
+  register: pwa_auth_users_initial
+
+# Accounts are deleted if:
+#   - they are not listed in perfsonar_pwa_user_list
+#   - perfsonar_pwa_user_purge is True
+- name: purge accounts not listed in perfsonar_pwa_user_list
+  tags: [ 'ps::pwa_users' ]
+  command:
+    argv:
+      - docker
+      - exec
+      - -it
+      - sca-auth
+      - pwa_auth
+      - userdel
+      - --username
+      - "{{ item }}"
+  with_items: "{{ pwa_auth_users_initial.stdout_lines }}"
+  when: 
+    - perfsonar_pwa_user_purge | default('False') == True
+    - perfsonar_pwa_user_list | default([], True) |
+      selectattr('username', 'match', item) | list | count == 0
+
+# Accounts are created if:
+#   - they are listed in perfsonar_pwa_user_list
+#   - they did not previously exist
+#   - they have a fullname attribute
+#   - they have a username attribute
+#   - they either have an email attribute or
+#     perfsonar_pwa_user_default_domain is set
+- name: create user accounts
+  tags: [ 'ps::pwa_users' ]
+  command:
+    argv:
+      - docker
+      - exec
+      - -it
+      - sca-auth
+      - pwa_auth
+      - useradd
+      - --username
+      - "{{ item.username }}"
+      - --fullname
+      - "{{ item.fullname }}"
+      - --email
+      - "{{ item.email if ( item.email | default('', True) != '') else
+        item.username + '@' + perfsonar_pwa_user_default_domain }}"
+  with_items: "{{ perfsonar_pwa_user_list | default([], True) }}"
+  when:
+    - item != []
+    - item.fullname | default('', True) != ''
+    - item.username | default('', True) != ''
+    - item.email | default('', True) != '' or
+      perfsonar_pwa_user_default_domain | default('', True) != ''
+    - item.username not in pwa_auth_users_initial.stdout_lines
+
+- name: get final user list from PWA host
+  tags: [ 'ps::pwa_users' ]
+  shell: >
+    docker exec -it sca-auth pwa_auth listuser --short|cut -f 3|sed '1d'
+  register: pwa_auth_users_final
+
+# Passwords are set/reset if:
+#   - the account has a password attribute
+#   - the account was newly created or
+#     the account's password_reset attribute is True
+- name: set/reset PWA account passwords
+  tags: [ 'ps::pwa_users' ]
+  command:
+    argv:
+      - docker
+      - exec
+      - -it
+      - sca-auth
+      - pwa_auth
+      - setpass
+      - --username
+      - "{{ item.username }}"
+      - --password
+      - "{{ item.password }}"
+  with_items: "{{ perfsonar_pwa_user_list | default([], True) }}"
+  when:
+    - item != []
+    - item.password | default('', True) != ''
+    - item.username | default('', True) != ''
+    - item.username in pwa_auth_users_final.stdout_lines
+    - item.password_reset | default('False') == True or
+      item.username not in pwa_auth_users_initial.stdout_lines
+
+# Set PWA Scopes
+# this command wii be modified to use set instead of add when pwa_auth
+# gets support for limiting roles to PWA
+# this command only works when it's all on the same line
+- name: add PWA scopes
+  tags: [ 'ps::pwa_users' ]
+  command: "docker exec -it sca-auth pwa_auth modscope --username {{ item.username }} --add '{\"pwa\": [\"{{ item.scope | join('\",\"') }}\"]}'"
+  with_items: "{{ perfsonar_pwa_user_list | default([], True) }}"
+  when:
+    - item != []
+    - item.scope | default('', True) != ''
+    - item.username in pwa_auth_users_final.stdout_lines
+
+# Delete PWA admin scope.  This will be removed in the future when
+# pwa_auth supports discreet scope setting.
+- name: delete PWA scope admin
+  tags: [ 'ps::pwa_users' ]
+  command:
+    argv:
+      - docker
+      - exec
+      - -it
+      - sca-auth
+      - pwa_auth
+      - modscope
+      - --username
+      - "{{ item.username }}"
+      - --del
+      - '{"pwa": ["admin"]}'
+  with_items: "{{ perfsonar_pwa_user_list | default([], True) }}"
+  when:
+    - item != []
+    - item.username in pwa_auth_users_final.stdout_lines
+    - item.scope | default('', True) != ''
+    - "'admin' not in item.scope"
+
+# Delete PWA user scope.  This will be removed in the future when
+# pwa_auth supports discreet scope setting.
+- name: delete PWA scope user
+  tags: [ 'ps::pwa_users' ]
+  command:
+    argv:
+      - docker
+      - exec
+      - -it
+      - sca-auth
+      - pwa_auth
+      - modscope
+      - --username
+      - "{{ item.username }}"
+      - --del
+      - '{"pwa": ["user"]}'
+  with_items: "{{ perfsonar_pwa_user_list | default([], True) }}"
+  when:
+    - item != []
+    - item.username in pwa_auth_users_final.stdout_lines
+    - item.scope | default('', True) != ''
+    - "'user' not in item.scope"

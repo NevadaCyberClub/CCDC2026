@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>Public</short>
+  <description>Public zone with limited web access</description>
+
+  <service name="ssh"/>
+  <forward/>
+
+  {% for network in perfsonar_testpoint_allowed_networks %}
+  {% for port_struct in perfsonar_testpoint_ports %}
+
+  <rule family="ipv4">
+    <source address="{{ network }}"/>
+    <port protocol="{{ port_struct.proto }}" port="{{ port_struct.port }}"/>
+    <accept/>
+  </rule>
+
+  {% endfor %}
+  {% endfor %}
+</zone>

@@ -1,0 +1,40 @@
+---
+- name: Gather facts to load OS information
+  tags: [ 'ps::install', 'ps::running', 'ps::config' ]
+  setup:
+  become: no
+
+- name: only allow RedHat distributions to run this task (for now)
+  tags: [ 'ps::install' ]
+  fail:
+    msg: "This role is only supported on RedHat distributions. Please use the perfsonar-testpoint role for other distributions."
+  when: ansible_os_family != 'RedHat'
+
+- name: Ensure Docker is installed
+  tags: [ 'ps::install' ]
+  include_tasks: install_docker.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: configure webadmin files
+  tags: [ 'ps::install' ]
+  include_tasks: config_webadmin.yml
+
+- name: run docker setup
+  tags: [ 'ps::install' ]
+  include_tasks: run_docker.yml
+
+- name: run apache2 webadmin setup
+  tags: [ 'ps::install' ]
+  include_tasks: config_httpd.yml
+
+- name: manage PWA local users
+  tags: [ 'ps::pwa_users', 'ps::config' ]
+  include_tasks: pwa_users.yml
+
+# - name: publish remote mesh configurations that have a defined mesh file
+#   tags: [ 'ps::config' ]
+#   include_tasks: psconfig_publish_meshes.yml
+#   with_items: "{{ perfsonar_psconfig_publish_meshes | default([]) }}"
+#   loop_control:
+#     loop_var: psconfig_mesh
+#   when: psconfig_mesh.mesh | default('') != ''

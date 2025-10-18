@@ -1,0 +1,52 @@
+---
+# tasks file for perfsonar-psconfig-publisher
+
+- name: Copy psconfig JSON mesh {{ psconfig_mesh.mesh }} to publisher host
+  tags: [ 'ps::config' ]
+  copy:
+    src: "{{ psconfig_mesh.mesh }}"
+    dest: "{{ psconfig_mesh.remote_dir | default('/tmp') }}"
+  when: psconfig_mesh.remote_url | default('') == ''
+
+- name: Get psconfig URL JSON mesh to publisher host
+  tags: [ 'ps::config' ]
+  uri:
+    url: "{{ psconfig_mesh.remote_url }}"
+    return_content: yes
+    status_code: [200,304]
+    dest: "{{ psconfig_mesh.remote_dir | default('/tmp') }}/{{ psconfig_mesh.mesh }}"
+  when: psconfig_mesh.remote_url | default('') != ''
+
+- name: Publish psconfig JSON mesh
+  tags: [ 'ps::config' ]
+  command: >
+    psconfig publish
+    {{ psconfig_mesh.remote_dir | default('/tmp') }}/{{ psconfig_mesh.mesh }}
+  register: "psconfig_url"
+
+- name: Alert psconfig agents on remote hosts
+  tags: [ 'ps::config' ]
+  command: >
+    psconfig remote add 
+    "{{ psconfig_url.stdout | regex_search( '\"(.*?)\"' ) }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ psconfig_mesh.remote_agents | default([])}}"
+  when: psconfig_mesh.remote_configure_archives | default('False') != True
+
+- name: Alert psconfig agents on remote hosts with configure archives
+  tags: [ 'ps::config' ]
+  command: >
+    psconfig remote add --configure-archives
+    "{{ psconfig_url.stdout | regex_search( '\"(.*?)\"' ) }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ psconfig_mesh.remote_agents | default([])}}"
+  when: psconfig_mesh.remote_configure_archives | default('False') == True
+
+- name: Check connectivity from remote agents to psconfig publisher
+  tags: [ 'ps::config' ]
+  uri:
+    url: "{{ psconfig_url.stdout | regex_search( 'http(.*?)\n' ) }}"
+    validate_certs: no
+  ignore_errors: yes
+  delegate_to: "{{ item }}"
+  with_items: "{{ psconfig_mesh.remote_agents | default([])}}"

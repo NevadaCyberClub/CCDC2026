@@ -1,0 +1,13 @@
+---
+# handlers file for perfsonar-testpoint
+
+- name: restart ntp
+  systemd_service:
+    name: "{{ ntp_service }}"
+    state: restarted
+
+- name: restart ssh
+  systemd_service:
+    name: "{{ ssh_service }}"
+    state: restarted
+

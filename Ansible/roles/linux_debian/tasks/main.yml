@@ -1,0 +1,141 @@
+---
+# This needs to be done for all tags
+- name: Gather facts to load OS information
+  tags: [ 'ps::install', 'ps::running', 'ps::config' ]
+  setup:
+  become: no
+
+- name: only allow RedHat distributions to run this task
+  tags: [ 'ps::install' ]
+  fail:
+    msg: "This role is only supported on RedHat distributions. Please use the perfsonar-testpoint role for other distributions."
+  when: ansible_os_family != 'RedHat'
+
+- name: Ensure host is setup
+  tags: [ 'ps::install' ]
+  include_tasks: host-setup.yml
+
+- name: Render the 'public' firewalld zone definition
+  ansible.builtin.template:
+    src: firewalld_public_zone.xml.j2
+    dest: /etc/firewalld/zones/public.xml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload firewalld so the new zone is loaded
+  ansible.builtin.systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Ensure Docker is installed
+  tags: [ 'ps::install' ]
+  include_tasks: install_docker.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: copy docker build files to remote host
+  tags: [ 'ps::install' ]
+  synchronize:
+    src: docker-testpoint/
+    dest: "{{ perfsonar_testpoint_docker_deploy_path }}"
+    recursive: yes
+    delete: no
+
+- name: Configure LS registration
+  tags: [ 'ps::config' ]
+  include_tasks: lsregistration.yml
+
+- name: Build and start perfSONAR testpoint docker containers
+  tags: [ 'ps::install', 'ps::config' ]
+  include_tasks: build_docker.yml
+
+# Remove any conflicting /etc/hosts configuration
+- name: Make sure FQDN is not pointing to any localhost entry in /etc/hosts
+  tags: [ 'ps::config' ]
+  lineinfile:
+    dest: /etc/hosts
+    state: 'absent'
+    regexp: '127\.0\..*[\s]+{{ ansible_fqdn }}[\s]+.*'
+
+# pSConfig remotes management
+# We first get a list of configured remotes
+- name: Look at current psconfig remote list
+  tags: [ 'ps::config' ]
+  shell: docker exec {{ perfsonar_testpoint_docker_name }} psconfig remote list --agent pscheduler | tail -n +2 | jq -r .[].url
+  register: psconfig_remotes
+  changed_when: False
+
+# And list of configured remotes with archiving
+- name: Look at current psconfig remote list with configured archives
+  tags: [ 'ps::config' ]
+  shell: docker exec {{ perfsonar_testpoint_docker_name }} psconfig remote list --agent pscheduler | tail -n +2 | jq -r '.[] | select(."configure-archives"==true) | .url'
+  register: psconfig_remotes_archives
+  changed_when: False
+
+# The 2 lists are used in psconfig_remotes.yml
+- name: add/delete remote mesh configurations that have a valid URL and state
+  tags: [ 'ps::config' ]
+  include_tasks: psconfig_remotes.yml
+  with_items: "{{ perfsonar_psconfig_remote_remotes | default([]) }}"
+  when:
+    - item.url | default('') != ''
+    - item.state | default('present') in [ "absent", "present" ]
+
+#####
+# Verifying part: ps::running tag
+#####
+# Make sure services are running, but first flush handlers to ensure services are restarted
+- meta: flush_handlers
+
+- pause:
+    prompt: "Waiting 12 seconds for services to stabilise"
+    seconds: 12
+  tags: [ 'ps::running' ]
+
+- name: Ensure all perfSONAR services are enabled
+  tags: [ 'ps::running' ]
+  shell: docker exec {{ perfsonar_testpoint_docker_name }} systemctl enable {{ item }}
+  register: perfsonar_services_status
+  changed_when: False
+  failed_when: perfsonar_services_status.rc != 0
+  with_items:
+      - "{{ perfsonar_services }}"
+
+- name: Ensure all perfSONAR services are running
+  tags: [ 'ps::running' ]
+  shell: docker exec {{ perfsonar_testpoint_docker_name }} systemctl restart {{ item }}
+  register: perfsonar_services_status
+  changed_when: False
+  failed_when: perfsonar_services_status.rc != 0
+  with_items:
+      - "{{ perfsonar_services }}"
+
+- name: Check that all perfSONAR services are running
+  tags: [ 'ps::running' ]
+  shell: docker exec {{ perfsonar_testpoint_docker_name }} systemctl is-active {{ item }}
+  register: perfsonar_services_status
+  changed_when: False
+  ignore_errors: True
+  with_items:
+      - "{{ perfsonar_services }}"
+
+# Get some useful info out of the system
+- name: Check system status
+  tags: [ 'ps::running', 'ps::monitor' ]
+  include_tasks: sysinfo.yml
+
+# Run pscheduler troubleshoot
+- name: Run pscheduler troubleshoot locally
+  tags: [ 'ps::running' ]
+  command: docker exec {{ perfsonar_testpoint_docker_name }} pscheduler troubleshoot
+  register: pscheduler_troubleshoot
+  until: pscheduler_troubleshoot is succeeded
+  retries: 3
+  changed_when: False
+
+- name: Report pscheduler troubleshoot output
+  tags: [ 'ps::running', 'ps::monitor' ]
+  debug:
+    msg:
+      - "{{ pscheduler_troubleshoot.stdout.replace('\n\n','\n').split('\n') }}"
+  when: pscheduler_troubleshoot is defined

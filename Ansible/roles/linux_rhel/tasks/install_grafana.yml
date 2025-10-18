@@ -1,0 +1,24 @@
+---
+- name: Load grafana variables
+  tags: [ 'ps::config' ]
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "grafana.yml"
+
+- name: Install perfSONAR bundle {{ perfsonar_grafana_bundle }}
+  tags: [ 'ps::install' ]
+  package:
+    name: "{{ perfsonar_grafana_bundle | default('perfsonar-grafana') }}"
+    state: latest
+
+- name: Install grafana packages
+  tags: [ 'ps::install' ]
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ grafana_packages | default([]) }}"
+
+- name: systemctl daemon-reload
+  tags: [ 'ps::running' ]
+  systemd:
+    daemon_reload: yes

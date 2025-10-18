@@ -1,0 +1,15 @@
+---
+# logstash.yml
+
+# Manage authorised IP addresses
+- name: Manage access to Logstash for "{{ auth.address }}"
+  tags: [ 'ps::config' ]
+  ansible.builtin.lineinfile:
+    path: "{{ apache_logstash_conf }}"
+    insertbefore: '^\s+<\/RequireAny>\n'
+    line: "           Require ip {{ auth.address }}"
+    state: "{{ auth.state }}"
+  when:
+    - auth.state is defined and (auth.state == 'present' or auth.state == 'absent')
+  notify:
+    - restart apache

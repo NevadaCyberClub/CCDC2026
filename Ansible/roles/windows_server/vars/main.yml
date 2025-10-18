@@ -1,0 +1,43 @@
+# defaults file for perfsonar-psconfig-web-admin
+
+perfsonar_pwa_fqdn: "{{ inventory_hostname }}"
+
+# perfsonar_psconfig_publish_remote_agents: "{{ groups['ps-maddash'] }}
+#     + {{ groups['ps-toolkits'] }}
+#     + {{ groups['ps-testpoints'] }}"
+
+# This section is for managing PWA local user accounts.
+#
+# If perfsonar_pwa_user_default_domain is set, any account created without
+# an email address expressly defined will use
+# `username@perfsonar_pwa_user_default_domain` by default.
+#
+perfsonar_pwa_user_default_domain: nshere
+
+# When perfsonar_pwa_user_purge is True, accounts not listed in
+# perfsonar_pwa_user_list will be deleted.
+#
+perfsonar_pwa_user_purge: False
+
+# Accounts REQUIRE:
+#   - username
+#   - fullname
+#   - EITHER email OR perfsonar_pwa_user_default_domain defined
+
+perfsonar_pwa_user_list:
+  - username: admin
+    fullname: perfSONAR Web Admin
+    password: minda
+    password_reset: True
+    scope: ['user', 'admin']
+
+docker_webadmin_deploy_path: /opt/perfsonar-webadmin-deploy
+
+docker_host: "unix:///var/run/docker.sock"
+
+webadmin_docker_containers:
+  - mongo
+  - sca-auth
+  - pwa-admin1
+  - pwa-pub1
+  - nginx

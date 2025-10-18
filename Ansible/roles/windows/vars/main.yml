@@ -1,0 +1,15 @@
+# vars file for perfsonar-testpoint
+---
+# Variables defined in this file have precedence over a lot of other places
+# This means they cannot be overwritten in inventory or playbook.
+# See http://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable
+
+perfsonar_testpoint_docker_deploy_path: /opt/perfsonar-testpoint-docker
+
+perfsonar_testpoint_docker_name: perfsonar-testpoint
+perfsonar_testpoint_docker_image_name: perfsonar/testpoint
+perfsonar_testpoint_docker_tag: systemd
+
+# will be removed in deprovision
+perfsonar_psconfig_remote_remotes:
+  - url: https://central-perfsonar-archive.re.nevada.internal/psconfig/psconfig.json

@@ -1,0 +1,32 @@
+# todo: make linux distribution agnostic
+
+- name: Remove Podman Docker
+  ansible.builtin.dnf:
+    name: podman-docker
+    state: absent
+
+- name: Install Repo Manager
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+
+- name: Add Docker repository
+  ansible.builtin.command: >
+    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: Install Necessary Packages For Docker
+  ansible.builtin.package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - docker-compose-plugin
+      - containerd.io
+      - httpd-tools
+    state: present
+    disable_gpg_check: true
+
+- name: Ensure Docker service is started and enabled
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true

@@ -1,0 +1,67 @@
+---
+# tasks file for perfsonar-archive
+
+# Load OS dependant variables
+- name: Load variables based on OS type
+  tags: [ 'ps::config' ]
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+
+- name: Install optional archive tools
+  tags: [ 'ps::install' ]
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ optional_archive_tools | default([]) }}"
+
+- name: Install perfSONAR bundle {{ perfsonar_archive_bundle }}
+  tags: [ 'ps::install' ]
+  package:
+    name: "{{ perfsonar_archive_bundle | default('perfsonar-archive') }}"
+    state: latest
+
+#####
+# Configuration part: ps::config tag
+#####
+- name: Manage list of authorised IP addresses to perfsonar-archive (bypasses basic auth)
+  tags: [ 'ps::config' ]
+  include_tasks: logstash.yml
+  with_items: "{{ perfsonar_archive_logstash_allowed_networks | default([]) }}"
+  loop_control:
+    loop_var: auth
+  when: auth.address | default('') != ''
+
+- name: Replace logstash basic auth for testpoint access
+  tags: [ 'ps::config' ]
+  community.general.htpasswd:
+    path: /etc/perfsonar/opensearch/logstash_login
+    name: "{{ logstash_basic_auth_user }}"
+    password: "{{ logstash_basic_auth_pass }}"
+    owner: root
+    group: root
+    mode: '0640'
+
+#####
+# Verifying part: ps::running tag
+#####
+# Make sure services are running, but first flush handlers to ensure services are restarted
+- meta: flush_handlers
+
+- name: systemctl daemon-reload
+  tags: [ 'ps::running' ]
+  systemd:
+    daemon_reload: yes
+
+- name: Check that all perfSONAR archive services are running
+  tags: [ 'ps::running' ]
+  systemd_service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  with_flattened:
+      - "{{ perfsonar_archive_services }}"
+
+# defer psconfig publish to perfsonar-centralnode

@@ -1,0 +1,7 @@
+# variables specific to RedHat OS family
+---
+# Apache service
+apache_service: httpd
+
+# Location of the apache-logstash.conf file
+apache_logstash_conf: /etc/httpd/conf.d/apache-logstash.conf
