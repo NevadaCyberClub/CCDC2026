@@ -1,4 +1,7 @@
 ---
+- name: install common packages
+  include_tasks: common-installs.yml
+
 # Get some useful info out of the system
 - name: Check system status
   include_tasks: sysinfo.yml

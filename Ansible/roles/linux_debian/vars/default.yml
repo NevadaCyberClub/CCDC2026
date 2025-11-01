@@ -1,0 +1,9 @@
+---
+common_packages:
+  - netstat
+  - curl
+  - wget
+  - vim
+  - git
+  - ufw
+  - ca-certificates

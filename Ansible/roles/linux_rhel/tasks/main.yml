@@ -1,20 +1,11 @@
-- name: Add Docker repository
-  ansible.builtin.command: >
-    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+---
+- name: install common packages
+  include_tasks: common-installs.yml
 
-- name: Install Necessary Packages For Docker
-  ansible.builtin.package:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - docker-compose-plugin
-      - containerd.io
-      - httpd-tools
-    state: present
-    disable_gpg_check: true
+# Get some useful info out of the system
+- name: Check system status
+  include_tasks: sysinfo.yml
 
-- name: Ensure Docker service is started and enabled
-  ansible.builtin.systemd:
-    name: docker
-    state: started
-    enabled: true
+- name: Ensure Docker is installed
+  include_tasks: install_docker.yml
+  when: ansible_os_family == 'RedHat'
