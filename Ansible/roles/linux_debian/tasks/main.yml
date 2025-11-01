@@ -1,12 +1,8 @@
 ---
-- name: Ensure host is setup
-  include_tasks: host-setup.yml
+# Get some useful info out of the system
+- name: Check system status
+  include_tasks: sysinfo.yml
 
 - name: Ensure Docker is installed
   include_tasks: install_docker.yml
   when: ansible_os_family == 'RedHat'
-
-# Get some useful info out of the system
-- name: Check system status
-  tags: [ 'ps::running', 'ps::monitor' ]
-  include_tasks: sysinfo.yml

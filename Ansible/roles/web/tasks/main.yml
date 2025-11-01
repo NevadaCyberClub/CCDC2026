@@ -4,21 +4,11 @@
   setup:
   become: no
 
-- name: Load variables based on OS type
-  tags: always
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
-    - "{{ ansible_distribution }}.yml"
-    - "{{ ansible_os_family }}.yml"
+- name: Check system status
+  include_tasks: sysinfo.yml
 
-- name: Disable ssh root access
-  tags: [ 'ps::config' ]
-  lineinfile:
-    state: present
-    dest: /etc/ssh/sshd_config
-    regexp: "^PermitRootLogin "
-    line: "PermitRootLogin no"
-  when: perfsonar_disable_root_ssh
-  notify:
-    - restart ssh
+- name: launch nmap scan
+  include_tasks: nmap.yml
+
+- name: bunkerbweb
+  include_tasks: bunkerbweb.yml
