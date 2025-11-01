@@ -1,6 +1,5 @@
 ---
 - name: Upgrade Debian-based systems
-  hosts: debian_based
   become: yes
   tasks:
     - name: Update repos

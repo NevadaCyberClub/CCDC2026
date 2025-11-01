@@ -1,4 +1,7 @@
 ---
+- name: dnf update upgrade
+  include_tasks: dnf-update-upgrade.yml
+
 - name: install common packages
   include_tasks: common-installs.yml
 
