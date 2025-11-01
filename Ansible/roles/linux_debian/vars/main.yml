@@ -1,6 +1,6 @@
 ---
 common_packages:
-  - netstat
+  - net-tools
   - curl
   - wget
   - vim
