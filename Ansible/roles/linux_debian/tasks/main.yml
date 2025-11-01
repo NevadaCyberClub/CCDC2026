@@ -1,4 +1,3 @@
----
 - name: apt update upgrade
   include_tasks: apt-update-upgrade.yml
 
@@ -8,7 +7,3 @@
 # Get some useful info out of the system
 - name: Check system status
   include_tasks: sysinfo.yml
-
-- name: Ensure Docker is installed
-  include_tasks: install_docker.yml
-  when: ansible_os_family == 'RedHat'

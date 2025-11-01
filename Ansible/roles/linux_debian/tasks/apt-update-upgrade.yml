@@ -1,10 +1,7 @@
----
-- name: Upgrade Debian-based systems
-  become: yes
-  tasks:
-    - name: Update repos
-      ansible.builtin.apt:
-        update_cache: yes
-    - name: Upgrade packages
-      ansible.builtin.apt:
-        upgrade: dist
+- name: Update repos
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Upgrade packages
+  ansible.builtin.apt:
+    upgrade: dist

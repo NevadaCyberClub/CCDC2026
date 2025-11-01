@@ -1,11 +1,8 @@
----
-- name: Upgrade Rhel-based systems
-  become: yes
-  tasks:
-    - name: Update repos
-      ansible.builtin.dnf:
-        update_cache: yes
-    - name: Upgrade packages
-      ansible.builtin.dnf:
-        name: '*'
-        state: latest
+- name: Update repos
+  ansible.builtin.dnf:
+    update_cache: yes
+
+- name: Upgrade packages
+  ansible.builtin.dnf:
+    name: '*'
+    state: latest
