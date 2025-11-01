@@ -75,8 +75,6 @@
       {{ansible_fqdn}} - {{uptime.stdout}}
       {{ansible_distribution}}-{{ansible_distribution_major_version}} - {{ansible_processor_cores}} cores - kernel {{ansible_kernel}}
       Memory (free/total in MB): {{ansible_memfree_mb}}/{{ansible_memtotal_mb}} (Swap: {{ansible_swapfree_mb}}/{{ansible_swaptotal_mb}})
-      Running {{pscheduler_version.stdout}}
-      From {{ perfsonar_bundle_version.stdout_lines | join (' bundle - version ') }}
   debug:
     msg:
       - "{{ msg[:-1].split('\n') }}"
