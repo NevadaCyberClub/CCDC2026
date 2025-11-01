@@ -2,43 +2,9 @@
 - name: Ensure host is setup
   include_tasks: host-setup.yml
 
-- name: Render the 'public' firewalld zone definition
-  ansible.builtin.template:
-    src: firewalld_public_zone.xml.j2
-    dest: /etc/firewalld/zones/public.xml
-    owner: root
-    group: root
-    mode: '0644'
-
-- name: Reload firewalld so the new zone is loaded
-  ansible.builtin.systemd:
-    name: firewalld
-    state: reloaded
-
 - name: Ensure Docker is installed
   include_tasks: install_docker.yml
   when: ansible_os_family == 'RedHat'
-
-- name: copy docker build files to remote host
-  synchronize:
-    src: docker-testpoint/
-    dest: "{{ perfsonar_testpoint_docker_deploy_path }}"
-    recursive: yes
-    delete: no
-
-- name: Build and start perfSONAR testpoint docker containers
-  include_tasks: build_docker.yml
-
-#####
-# Verifying part: ps::running tag
-#####
-# Make sure services are running, but first flush handlers to ensure services are restarted
-- meta: flush_handlers
-
-- pause:
-    prompt: "Waiting 12 seconds for services to stabilise"
-    seconds: 12
-  tags: [ 'ps::running' ]
 
 # Get some useful info out of the system
 - name: Check system status
