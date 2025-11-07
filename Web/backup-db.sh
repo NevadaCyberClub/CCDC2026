@@ -10,7 +10,7 @@ timestamp=$(date +%Y%m%d-%H%M%S)
 mysql_outfile="$outdir/mysql-$timestamp.sql.gz"
 which mysqldump && \
     echo "MySQL detected. Dumping to $mysql_outfile." && \
-    echo "mysql: Use mysql < ${mysql_outfile} to restore" && \
+    echo "mysql: Use gunzip -c ${mysql_outfile} | mysql to restore" && \
     mysqldump --all-databases | gzip > $mysql_outfile && \
     echo "MySQL dump completed."
 
