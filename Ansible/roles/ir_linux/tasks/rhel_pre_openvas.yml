@@ -5,7 +5,7 @@
 
 - name: Install packages
   dnf:
-    name: "{{ pre_openvas_pkgs }}"
+    name: "{{ pre_openvas_pkgs_rhel }}"
     state: present
     update_cache: yes
 

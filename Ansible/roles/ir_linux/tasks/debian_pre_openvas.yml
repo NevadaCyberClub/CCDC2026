@@ -6,7 +6,7 @@
 
 - name: Install packages
   apt:
-    name: "{{ pre_openvas_pkgs }}"
+    name: "{{ pre_openvas_pkgs_debian }}"
     state: present
     update_cache: yes
 

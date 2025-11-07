@@ -7,11 +7,71 @@ velociraptor_admin_password: sec699
 velociraptor_client_config: Velociraptor.config.yaml
 velociraptor_msi_url_debian: https://github.com/Velocidex/velociraptor/releases/download/v0.75/velociraptor-v0.75.4-linux-amd64 
 velociraptor_msi_url_rhel: https://github.com/Velocidex/velociraptor/releases/download/v0.75/velociraptor-v0.75.4-linux-amd64-musl
-velociraptor_debian_file: velociraptor_debian 
+velociraptor_debian_file: velociraptor_debian
 velociraptor_rhel_file: velociraptor_rhel
 _velociraptor_windows_dir: C:\Program Files\Velociraptor\
 
-pre_openvas_pkgs:
+pre_openvas_pkgs_debian:
+  - acl
+  - build-essential
+  - cmake
+  - pkg-config
+  - gcc-mingw-w64
+  - gnutls-bin
+  - libgnutls28-dev
+  - libxml2-dev
+  - libssh-dev
+  - libssl-dev
+  - libunistring-dev
+  - libldap2-dev
+  - libgcrypt-dev
+  - libpcap-dev
+  - libgpgme-dev
+  - libradcli-dev
+  - libglib2.0-dev
+  - libksba-dev
+  - libical-dev
+  - libpq-dev
+  - libopenvas-dev
+  - libpopt-dev
+  - libnet1-dev
+  - libmicrohttpd-dev
+  - redis-server
+  - libhiredis-dev
+  - doxygen
+  - xsltproc
+  - uuid-dev
+  - graphviz
+  - bison
+  - postgresql
+  - postgresql-contrib
+  - postgresql-server-dev-all 
+  - heimdal-dev
+  - xmltoman
+  - nmap
+  - npm
+  - nodejs
+  - virtualenv
+  - gnupg
+  - rsync
+  - yarnpkg
+  - python3-paramiko
+  - python3-lxml
+  - python3-defusedxml
+  - python3-pip
+  - python3-psutil
+  - python3-setuptools
+  - python3-packaging
+  - python3-wrapt
+  - python3-cffi
+  - python3-redis
+  - python3-psycopg2
+  - xmlstarlet
+  - texlive-fonts-recommended
+  - texlive-latex-extra
+  - perl-base
+
+pre_openvas_pkgs_rhe;:
   - acl
   - build-essential
   - cmake
