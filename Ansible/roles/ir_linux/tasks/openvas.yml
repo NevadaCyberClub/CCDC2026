@@ -1,0 +1,248 @@
+
+- name: Export env
+  shell: |
+    env
+    echo $SOURCE_DIR
+    mkdir -p $SOURCE_DIR
+    mkdir -p $BUILD_DIR
+    mkdir -p $INSTALL_DIR
+    
+- name: Key
+  shell: |
+    curl -s -O https://www.greenbone.net/GBCommunitySigningKey.asc 
+    gpg --import GBCommunitySigningKey.asc
+    /bin/bash -c "echo -e '5\ny\n' | gpg --command-fd 0 --edit-key '9823FAA60ED1E580' trust"
+
+- name: Download GVM-LIBS
+  shell: |
+    curl -fs -L https://github.com/greenbone/gvm-libs/archive/refs/tags/v$GVM_LIBS_VERSION.tar.gz -o $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION.tar.gz
+    curl -fs -L https://github.com/greenbone/gvm-libs/releases/download/v$GVM_LIBS_VERSION/gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc -o $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc
+    gpg --verify $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION.tar.gz
+
+- name: Install GVM libraries
+  shell: |
+    env
+    tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION.tar.gz
+    mkdir -p $BUILD_DIR/gvm-libs && cd $BUILD_DIR/gvm-libs
+    cmake --log-level=ERROR $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DSYSCONFDIR=/etc \
+      -DLOCALSTATEDIR=/var \
+      -DGVM_PID_DIR=/run/gvm
+    make DESTDIR=$INSTALL_DIR install
+    cp -rv $INSTALL_DIR/* /
+    rm -rf $INSTALL_DIR/*
+
+- name: Download GVMD
+  shell: |
+    curl -fs -L https://github.com/greenbone/gvmd/archive/refs/tags/v$GVMD_VERSION.tar.gz -o $SOURCE_DIR/gvmd-$GVMD_VERSION.tar.gz
+    curl -fs -L https://github.com/greenbone/gvmd/releases/download/v$GVMD_VERSION/gvmd-$GVMD_VERSION.tar.gz.asc -o $SOURCE_DIR/gvmd-$GVMD_VERSION.tar.gz.asc
+    gpg --verify $SOURCE_DIR/gvmd-$GVMD_VERSION.tar.gz.asc $SOURCE_DIR/gvmd-$GVMD_VERSION.tar.gz
+
+- name: Install GVMD
+  shell: |
+    tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/gvmd-$GVMD_VERSION.tar.gz
+    mkdir -p $BUILD_DIR/gvmd && cd $BUILD_DIR/gvmd
+    cmake --log-level=ERROR $SOURCE_DIR/gvmd-$GVMD_VERSION \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DLOCALSTATEDIR=/var \
+      -DSYSCONFDIR=/etc \
+      -DGVM_DATA_DIR=/var \
+      -DGVM_RUN_DIR=/run/gvm \
+      -DOPENVAS_DEFAULT_SOCKET=/run/ospd/ospd-openvas.sock \
+      -DGVM_FEED_LOCK_PATH=/var/lib/gvm/feed-update.lock \
+      -DSYSTEMD_SERVICE_DIR=/lib/systemd/system \
+      -DDEFAULT_CONFIG_DIR=/etc/default \
+      -DLOGROTATE_DIR=/etc/logrotate.d
+    make DESTDIR=$INSTALL_DIR install
+    cp -rv $INSTALL_DIR/* /
+    rm -rf $INSTALL_DIR/*
+
+- name: Download GSA
+  shell: |
+    curl -fs -L https://github.com/greenbone/gsa/archive/refs/tags/v$GSA_VERSION.tar.gz -o $SOURCE_DIR/gsa-$GSA_VERSION.tar.gz
+    curl -fs -L https://github.com/greenbone/gsa/releases/download/v$GSA_VERSION/gsa-$GSA_VERSION.tar.gz.asc -o $SOURCE_DIR/gsa-$GSA_VERSION.tar.gz.asc
+    gpg --verify $SOURCE_DIR/gsa-$GSA_VERSION.tar.gz.asc $SOURCE_DIR/gsa-$GSA_VERSION.tar.gz
+
+- name: Install GSA
+  shell: |
+    env
+    tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/gsa-$GSA_VERSION.tar.gz
+    mkdir -p $BUILD_DIR/gsa && cd $BUILD_DIR/gsa
+    cmake --log-level=ERROR $SOURCE_DIR/gsa-$GSA_VERSION \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DSYSCONFDIR=/etc \
+      -DLOCALSTATEDIR=/var \
+      -DGVM_RUN_DIR=/run/gvm \
+      -DGSAD_PID_DIR=/run/gvm \
+      -DLOGROTATE_DIR=/etc/logrotate.d
+    make DESTDIR=$INSTALL_DIR install
+    cp -rv $INSTALL_DIR/* /
+    rm -rf $INSTALL_DIR/*
+
+- name: Download OpenVAS SAMBA
+  shell: |
+    curl -fs -L https://github.com/greenbone/openvas-smb/archive/refs/tags/v$OPENVAS_SMB_VERSION.tar.gz -o $SOURCE_DIR/openvas-smb-$OPENVAS_SMB_VERSION.tar.gz
+    curl -fs -L https://github.com/greenbone/openvas-smb/releases/download/v$OPENVAS_SMB_VERSION/openvas-smb-$OPENVAS_SMB_VERSION.tar.gz.asc -o $SOURCE_DIR/openvas-smb-$OPENVAS_SMB_VERSION.tar.gz.asc
+    gpg --verify $SOURCE_DIR/openvas-smb-$OPENVAS_SMB_VERSION.tar.gz.asc $SOURCE_DIR/openvas-smb-$OPENVAS_SMB_VERSION.tar.gz
+
+- name: Install OpenVAS SAMBA
+  shell: |
+    tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/openvas-smb-$OPENVAS_SMB_VERSION.tar.gz
+    mkdir -p $BUILD_DIR/openvas-smb && cd $BUILD_DIR/openvas-smb
+    cmake --log-level=ERROR $SOURCE_DIR/openvas-smb-$OPENVAS_SMB_VERSION \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
+      -DCMAKE_BUILD_TYPE=Release
+    make DESTDIR=$INSTALL_DIR install
+    cp -rv $INSTALL_DIR/* /
+    rm -rf $INSTALL_DIR/*
+
+- name: Download OpenVAS Scanner
+  shell: |
+    curl -fs -L https://github.com/greenbone/openvas-scanner/archive/refs/tags/v$OPENVAS_SCANNER_VERSION.tar.gz -o $SOURCE_DIR/openvas-scanner-$OPENVAS_SCANNER_VERSION.tar.gz
+    curl -fs -L https://github.com/greenbone/openvas-scanner/releases/download/v$OPENVAS_SCANNER_VERSION/openvas-scanner-$OPENVAS_SCANNER_VERSION.tar.gz.asc -o $SOURCE_DIR/openvas-scanner-$OPENVAS_SCANNER_VERSION.tar.gz.asc
+    gpg --verify $SOURCE_DIR/openvas-scanner-$OPENVAS_SCANNER_VERSION.tar.gz.asc $SOURCE_DIR/openvas-scanner-$OPENVAS_SCANNER_VERSION.tar.gz
+
+- name: Install OpenVAS Scanner
+  shell: |
+    tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/openvas-scanner-$OPENVAS_SCANNER_VERSION.tar.gz
+    mkdir -p $BUILD_DIR/openvas-scanner && cd $BUILD_DIR/openvas-scanner
+    cmake --log-level=ERROR $SOURCE_DIR/openvas-scanner-$OPENVAS_SCANNER_VERSION \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DSYSCONFDIR=/etc \
+      -DLOCALSTATEDIR=/var \
+      -DOPENVAS_FEED_LOCK_PATH=/var/lib/openvas/feed-update.lock \
+      -DOPENVAS_RUN_DIR=/run/ospd
+    make DESTDIR=$INSTALL_DIR install
+    cp -rv $INSTALL_DIR/* /
+    rm -rf $INSTALL_DIR/*
+
+- name: Download ospd-openvas
+  shell: |
+    curl -fs -L https://github.com/greenbone/ospd/archive/refs/tags/v$OSPD_VERSION.tar.gz -o $SOURCE_DIR/ospd-$OSPD_VERSION.tar.gz
+    curl -fs -L https://github.com/greenbone/ospd/releases/download/v$OSPD_VERSION/ospd-$OSPD_VERSION.tar.gz.asc -o $SOURCE_DIR/ospd-$OSPD_VERSION.tar.gz.asc
+    curl -fs -L https://github.com/greenbone/ospd-openvas/archive/refs/tags/v$OSPD_OPENVAS_VERSION.tar.gz -o $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION.tar.gz
+    curl -fs -L https://github.com/greenbone/ospd-openvas/releases/download/v$OSPD_OPENVAS_VERSION/ospd-openvas-$OSPD_OPENVAS_VERSION.tar.gz.asc -o $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION.tar.gz.asc
+    gpg --verify $SOURCE_DIR/ospd-$OSPD_VERSION.tar.gz.asc $SOURCE_DIR/ospd-$OSPD_VERSION.tar.gz
+    gpg --verify $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION.tar.gz.asc $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION.tar.gz
+
+- name: Install ospd-openvas
+  shell: |
+    tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/ospd-$OSPD_VERSION.tar.gz
+    tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION.tar.gz
+    cd $SOURCE_DIR/ospd-$OSPD_VERSION
+    python3 -m pip install . --prefix=$INSTALL_PREFIX --root=$INSTALL_DIR
+
+- name: Install psutil
+  shell: |
+    pip install --upgrade psutil==5.5.1
+    cd $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION
+    python3 -m pip install . --prefix=$INSTALL_PREFIX --root=$INSTALL_DIR --no-warn-script-location
+    python3 -m pip install --user gvm-tools
+    cp -rv $INSTALL_DIR/* /
+    rm -rf $INSTALL_DIR/*
+
+- name: Install Redis
+  shell: |
+    sudo cp $SOURCE_DIR/openvas-scanner-21.4.3/config/redis-openvas.conf /etc/redis/
+    sudo chown redis:redis /etc/redis/redis-openvas.conf
+    bash -c 'echo "db_address = /run/redis-openvas/redis.sock" | sudo tee -a /etc/openvas/openvas.conf'
+
+- name: Enable Redis
+  service: 
+    name: redis-server@openvas.service
+    enabled: yes
+    state: started
+
+- name: Config redis group member
+  user:
+    name: gvm
+    append: yes
+    groups: redis
+
+- name: Fix gvm directories owners
+  file:
+    path: "{{item}}"
+    owner: gvm
+    group: gvm
+    recurse: yes
+  loop:
+    - /var/lib/gvm
+    - /var/lib/openvas
+    - /var/log/gvm
+    - /run/gvm
+
+- name: Fix gvm permissions
+  file:
+    path: "{{item}}"
+    mode: g+srw
+    recurse: yes
+  loop:
+    - /var/lib/gvm
+    - /var/lib/openvas
+    - /var/log/gvm
+   
+- name: Fix gvmd permission
+  file:
+    path: /usr/local/sbin/gvmd
+    mode: '6750'
+    owner: gvm
+    group: gvm
+
+- name: Fix feed directories owners
+  file:
+    path: "{{item}}"
+    owner: gvm
+    group: gvm
+    mode: '740'
+  loop:
+    - /usr/local/bin/greenbone-nvt-sync
+    - /usr/local/sbin/greenbone-certdata-sync
+    - /usr/local/sbin/greenbone-feed-sync
+    - /usr/local/sbin/greenbone-scapdata-sync
+
+- name: Ensure php extension matches new pattern
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    line: '%gvm ALL = NOPASSWD: /usr/local/sbin/openvas'
+    validate: '/usr/sbin/visudo -cf %s'
+
+- name: Start Postgres
+  service: 
+    name: postgresql@12-main.service
+    state: started
+
+- name: Create Postgres user and DB
+  become_user: postgres
+  postgresql_user:
+    name: gvm
+    role_attr_flags: NOCREATEDB,NOCREATEROLE,NOSUPERUSER
+
+- name: Create DB
+  become_user: postgres
+  postgresql_db:
+    name: gvmd
+    owner: gvm
+
+- name: Create temp dump
+  copy:
+    dest: /tmp/dump.sql
+    mode: '0644'
+    content: |
+      create role dba with superuser noinherit;
+      grant dba to gvm;
+      create extension "uuid-ossp";
+      create extension "pgcrypto";
+
+- name: Run dump sql
+  become_user: postgres
+  shell: psql gvmd < /tmp/dump.sql
+
+- name: Reload cache
+  command: ldconfig
+

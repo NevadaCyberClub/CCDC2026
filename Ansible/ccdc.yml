@@ -41,3 +41,30 @@
     - ir_linux_server
   roles:
     - ir_linux
+
+
+- name: Deploy openvas
+  hosts: server
+  remote_user: '{{ INSTALL_USER }}'
+  become: yes
+  gather_facts: no
+  environment:
+    GVM_VERSION: 21.4.4
+    GVM_LIBS_VERSION: 21.4.3
+    GVMD_VERSION: 21.4.4
+    GSA_VERSION: 21.4.3
+    OPENVAS_SMB_VERSION: 21.4.0
+    OPENVAS_SCANNER_VERSION: 21.4.3
+    OSPD_VERSION: 21.4.4
+    OSPD_OPENVAS_VERSION: 21.4.3
+    PATH: "/usr/local/sbin:{{ ansible_env.PATH }}"
+    INSTALL_PREFIX: /usr/local
+    SOURCE_DIR: "/home/{{ INSTALL_USER }}/source"
+    BUILD_DIR: "/home/{{ INSTALL_USER }}/build"
+    INSTALL_DIR: "/home/{{ INSTALL_USER }}/install"
+
+
+  roles:
+  - pre
+  - deploy_openvas
+  - finishing

@@ -1,0 +1,30 @@
+
+- name: DNF update
+  shell: |
+    dnf update --security -y
+
+- name: Install packages
+  dnf:
+    name: "{{ pre_openvas_pkgs }}"
+    state: present
+    update_cache: yes
+
+- name: Install yarn
+  command: sudo npm install -g yarn
+
+- name: Create gvm group
+  group:
+    name: gvm
+    state: present
+
+- name: Config gvm user
+  user:
+    name: gvm
+    append: yes
+    system: yes
+    group: gvm
+    groups: sudo
+    shell: /usr/sbin/nologin
+    create_home: no
+    state: present
+

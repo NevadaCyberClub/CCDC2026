@@ -1,0 +1,147 @@
+
+- name: Web user
+  command: /usr/local/sbin/gvmd --create-user=admin --password=admin
+  ignore_errors: yes
+
+- name: Get ID
+  command: /bin/bash -c 'gvmd --get-users --verbose | cut -d " " -f2'
+  register: gvmd_id
+
+- name: Set user as administrator
+  shell: "gvmd --modify-setting 78eceaec-3385-11ea-b237-28d24461215b --value {{ gvmd_id.stdout }} "
+
+- name: Update feed nvt
+  shell: bash -c "sudo -u gvm greenbone-nvt-sync 2>&1 > /dev/null"
+
+- name: Update feed GVMD_DATA
+  shell: bash -c "sudo -u gvm greenbone-feed-sync --type GVMD_DATA 2>&1 > /dev/null"
+
+- name: Update feed SCAP
+  shell: bash -c "sudo -u gvm greenbone-feed-sync --type SCAP 2>&1 > /dev/null"
+
+- name: Update feed CERT
+  shell: bash -c "sudo -u gvm greenbone-feed-sync --type CERT 2>&1 > /dev/null"
+
+- name: Update certs
+  shell: sudo -u gvm gvm-manage-certs -a
+  ignore_errors: yes
+
+- name: Gvmd service file
+  copy:
+    dest: /etc/systemd/system/gvmd.service
+    content: |
+      [Unit]
+      Description=Greenbone Vulnerability Manager daemon (gvmd)
+      After=network.target networking.service postgresql.service ospd-openvas.service
+      Wants=postgresql.service ospd-openvas.service
+      Documentation=man:gvmd(8)
+      ConditionKernelCommandLine=!recovery
+      [Service]
+      Type=forking
+      User=gvm
+      Group=gvm
+      PIDFile=/run/gvm/gvmd.pid
+      RuntimeDirectory=gvm
+      RuntimeDirectoryMode=2775
+      ExecStart=/usr/local/sbin/gvmd --osp-vt-update=/run/ospd/ospd-openvas.sock --listen-group=gvm
+      Restart=always
+      TimeoutStopSec=10
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Gsad service file
+  copy:
+    dest: /etc/systemd/system/gsad.service
+    content: |
+      [Unit]
+      Description=Greenbone Security Assistant daemon (gsad)
+      Documentation=man:gsad(8) https://www.greenbone.net
+      After=network.target gvmd.service
+      Wants=gvmd.service
+      [Service]
+      Type=forking
+      User=gvm
+      Group=gvm
+      PIDFile=/run/gvm/gsad.pid
+      ExecStart=/usr/local/sbin/gsad --listen=0.0.0.0 --port=9392
+      Restart=always
+      TimeoutStopSec=10
+      [Install]
+      WantedBy=multi-user.target
+      Alias=greenbone-security-assistant.service
+
+- name: Ospd-openvas service file
+  copy:
+    dest: /etc/systemd/system/ospd-openvas.service
+    content: |
+      [Unit]
+      Description=OSPd Wrapper for the OpenVAS Scanner (ospd-openvas)
+      Documentation=man:ospd-openvas(8) man:openvas(8)
+      After=network.target networking.service redis-server@openvas.service
+      Wants=redis-server@openvas.service
+      ConditionKernelCommandLine=!recovery
+      [Service]
+      Type=forking
+      User=gvm
+      Group=gvm
+      RuntimeDirectory=ospd
+      RuntimeDirectoryMode=2775
+      PIDFile=/run/ospd/ospd-openvas.pid
+      ExecStart=/usr/local/bin/ospd-openvas --unix-socket /run/ospd/ospd-openvas.sock --pid-file /run/ospd/ospd-openvas.pid --log-file /var/log/gvm/ospd-openvas.log --lock-file-dir /var/lib/openvas --socket-mode 0o770
+      SuccessExitStatus=SIGKILL
+      Restart=always
+      RestartSec=60
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Daemon reload
+  systemd:
+    daemon_reload: yes
+
+- name: Service enable
+  systemd:
+    enabled: yes
+    name: "{{item}}"
+  loop:
+    - ospd-openvas
+    - gvmd
+    - gsad
+
+- name: Service start
+  systemd:
+    state: started
+    name: "{{item}}"
+  loop:
+    - ospd-openvas
+    - gvmd
+    - gsad
+
+- name: Create a directory for script
+  file:
+    path: /opt/gvm/bin
+    state: directory
+    mode: '0750'
+
+- name: Update script
+  copy:
+    dest: /opt/gvm/bin/openvas-update
+    content: |
+      #!/bin/bash
+      sudo -u gvm greenbone-nvt-sync
+      sudo -u gvm greenbone-feed-sync --type GVMD_DATA
+      sudo -u gvm greenbone-feed-sync --type SCAP
+      sudo -u gvm greenbone-feed-sync --type CERT
+
+- name: Fix cron script
+  file:
+    path: /opt/gvm/bin/openvas-update
+    owner: gvm
+    group: gvm
+    mode: a+x
+
+- name: Cron task
+  cron:
+    name: "OpenVAS feed update"
+    job: "/opt/gvm/bin/openvas-update"
+    minute: "10"
+    hour: "22"
