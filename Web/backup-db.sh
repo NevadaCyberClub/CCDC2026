@@ -3,7 +3,7 @@
 # backup-db.sh
 #
 
-outdir=${1:-/root}
+outdir=${1:-$HOME}
 
 timestamp=$(date +%Y%m%d-%H%M%S)
 
