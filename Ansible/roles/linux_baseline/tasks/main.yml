@@ -1,0 +1,89 @@
+---
+- name: Show listening TCP/UDP ports
+  ansible.builtin.shell: "ss -tulnp"
+  register: open_ports
+  ignore_errors: yes
+
+- name: List all users
+  ansible.builtin.shell: "awk -F: '{print $1}' /etc/passwd"
+  register: all_users
+
+- name: Build System Report
+  set_fact:
+    os_report: |
+      Host: {{ inventory_hostname }}
+      OS: {{ ansible_facts["distribution"] }}
+      Version: {{ ansible_facts["distribution_version"] }}
+      Release: {{ ansible_facts["distribution_release"] }}
+      Family: {{ ansible_facts["os_family"] }}
+      Kernel: {{ ansible_facts["kernel"] }}
+      Gateway: {{ ansible_facts["default_ipv4"]["gateway"] }}
+      Open Ports:
+      {% for p in open_ports.stdout_lines %}
+        - {{ p }}
+      {% endfor %}
+      Users:
+      {% for u in all_users.stdout_lines %}
+        - {{ u }}
+      {% endfor %}
+
+- name: Ensure host_reports directory exists
+  delegate_to: localhost
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/host_reports"
+    state: directory
+    mode: '0755'
+
+- name: Save report to file on control machine
+  delegate_to: localhost
+  ansible.builtin.copy:
+    content: "{{ os_report }}"
+    dest: "{{ playbook_dir }}/host_reports/{{ inventory_hostname }}.txt"
+
+#- name: Create a new sudo user
+#  ansible.builtin.user:
+#    name: adminuser
+#    state: present
+#    groups: sudo
+#    append: yes
+
+#- name: Disable root SSH login
+#  ansible.builtin.lineinfile:
+#    path: /etc/ssh/sshd_config
+#    regexp: '^PermitRootLogin'
+#    line: 'PermitRootLogin no'
+#    backup: yes
+#  notify: Restart SSH
+
+- name: Install fail2ban (Debian/Ubuntu)
+  ansible.builtin.package:
+    name: fail2ban
+    state: present
+  when: ansible_facts["os_family"] == "Debian"
+
+- name: Install fail2ban (RHEL/Fedora)
+  ansible.builtin.package:
+    name: fail2ban
+    state: present
+  when: ansible_facts["os_family"] == "RedHat"
+
+- name: Configure fail2ban jail.local
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      port = ssh
+      filter = sshd
+      logpath = /var/log/auth.log
+      backend = systemd
+      maxretry = 5
+      bantime = 1h
+      findtime = 10m
+  notify: Restart Fail2ban
+
+- name: Ensure fail2ban is running
+  ansible.builtin.service:
+    name: fail2ban
+    enabled: yes
+    state: started

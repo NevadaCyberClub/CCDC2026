@@ -41,3 +41,15 @@
     - ir_linux_server
   roles:
     - ir_linux
+
+- name: linux baseline configuration
+  hosts:
+    - linux
+  roles:
+    - linux_baseline
+
+- name: Install Velociraptor client and server on remote hosts
+  hosts: velociraptor
+  become: yes
+  roles:
+    - ansible_velociraptor

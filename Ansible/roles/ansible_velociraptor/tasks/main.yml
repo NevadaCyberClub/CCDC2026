@@ -1,0 +1,49 @@
+---
+- name: Include OS Specific Variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}-{{ ansible_architecture }}.yml"
+  tags:
+    - always
+
+- name: Include version-specific variables for Ubuntu.
+  ansible.builtin.include_vars: "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+  when: ansible_distribution == 'Ubuntu'
+  tags:
+    - always
+- name: Include version-specific variables for Debian.
+  ansible.builtin.include_vars: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+  when: ansible_distribution == 'Debian'
+  tags:
+    - always
+- name: Include version-specific variables for RedHat
+  ansible.builtin.include_vars: "RedHat-{{ ansible_distribution_major_version }}.yml"
+  when: ansible_os_family == "RedHat"
+  tags:
+    - always
+
+- name: Set fact is_container
+  ansible.builtin.set_fact:
+    is_container: true
+  when: >
+    (ansible_virtualization_type is defined and
+      (ansible_virtualization_type == "docker"
+       or ansible_virtualization_type == "containerd"
+       or ansible_virtualization_type == "container"
+      )
+    )
+
+- name: "Gather Service Facts"
+  ansible.builtin.service_facts:
+  when: ansible_os_family != "Windows"
+  tags:
+    - always
+
+- name: "Install Velociraptor"
+  ansible.builtin.import_tasks: install_velociraptor.yml
+  tags:
+    - install
+
+- name: "Uninstall Velociraptor"
+  ansible.builtin.import_tasks: uninstall_velociraptor.yml
+  tags:
+    - never
+    - uninstall

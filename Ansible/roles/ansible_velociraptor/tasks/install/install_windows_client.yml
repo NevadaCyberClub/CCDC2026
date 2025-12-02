@@ -1,0 +1,22 @@
+---
+- name: "Windows Client | Create directory"
+  ansible.windows.win_file:
+    path: "{{ _velociraptor_windows_dir }}"
+    state: directory
+
+- name: "Windows Client | Get velociraptor msi"
+  ansible.windows.win_get_url:
+    url: "{{ velociraptor_url }}"
+    dest: "{{ _velociraptor_windows_dir }}{{ velociraptor_msi }}"
+
+- name: "Windows Client | Install velociraptor msi"
+  ansible.windows.win_package:
+    path: "{{ _velociraptor_windows_dir }}{{ velociraptor_msi }}"
+    state: present
+
+- name: "Windows Client | Copy velociraptor client config"
+  ansible.windows.win_copy:
+    src: client.config.yaml
+    dest: "{{ _velociraptor_windows_dir }}client.config.yaml"
+  notify:
+    - Restart velociraptor windows client
