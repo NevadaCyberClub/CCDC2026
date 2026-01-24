@@ -9,41 +9,41 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 # 1. Enforce Strong Kerberos Encryption
 #############################################
 # Create or use the registry key for Kerberos parameters
-$kerbRegPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos\Parameters"
-if (-not (Test-Path $kerbRegPath)) {
-    New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos" -Name "Parameters" -Force | Out-Null
-}
+# $kerbRegPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos\Parameters"
+# if (-not (Test-Path $kerbRegPath)) {
+#     New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos" -Name "Parameters" -Force | Out-Null
+# }
 
-# Set SupportedEncryptionTypes to 24
-# Value 24 (decimal) typically enables AES128 (0x08) and AES256 (0x10) while disabling RC4 (0x1) and DES (0x2)
-Write-Output "Enforcing AES-based Kerberos encryption (disabling RC4/legacy types)..."
-try {
-    Set-ItemProperty -Path $kerbRegPath -Name "SupportedEncryptionTypes" -Value 24 -Type DWord -Force
-    Write-Output "Kerberos encryption types updated."
-} catch {
-    Write-Error "Failed to update Kerberos encryption settings: $_"
-}
+# # Set SupportedEncryptionTypes to 24
+# # Value 24 (decimal) typically enables AES128 (0x08) and AES256 (0x10) while disabling RC4 (0x1) and DES (0x2)
+# Write-Output "Enforcing AES-based Kerberos encryption (disabling RC4/legacy types)..."
+# try {
+#     Set-ItemProperty -Path $kerbRegPath -Name "SupportedEncryptionTypes" -Value 24 -Type DWord -Force
+#     Write-Output "Kerberos encryption types updated."
+# } catch {
+#     Write-Error "Failed to update Kerberos encryption settings: $_"
+# }
 
-#############################################
-# 2. (Optional) Reset the KRBTGT Account Password
-#############################################
-# WARNING: Resetting the KRBTGT password invalidates all existing Kerberos tickets.
-# It is a disruptive change and must be carefully coordinated.
-$resetKRBTGT = Read-Host "Do you want to reset the KRBTGT account password? (Y/N)"
-if ($resetKRBTGT -eq "Y") {
-    Import-Module ActiveDirectory
-    Write-Output "WARNING: Resetting KRBTGT will invalidate existing Kerberos tickets across the domain."
-    $newPassword = Read-Host "Enter a new complex password for the KRBTGT account" -AsSecureString
-    try {
-        Set-ADAccountPassword -Identity "krbtgt" -Reset -NewPassword $newPassword -ErrorAction Stop
-        Write-Output "KRBTGT account password has been reset."
-        Write-Output "IMPORTANT: Microsoft recommends performing a double reset of the KRBTGT account. Please plan accordingly."
-    } catch {
-        Write-Error "Failed to reset KRBTGT password: $_"
-    }
-} else {
-    Write-Output "KRBTGT account password reset skipped."
-}
+# #############################################
+# # 2. (Optional) Reset the KRBTGT Account Password
+# #############################################
+# # WARNING: Resetting the KRBTGT password invalidates all existing Kerberos tickets.
+# # It is a disruptive change and must be carefully coordinated.
+# $resetKRBTGT = Read-Host "Do you want to reset the KRBTGT account password? (Y/N)"
+# if ($resetKRBTGT -eq "Y") {
+#     Import-Module ActiveDirectory
+#     Write-Output "WARNING: Resetting KRBTGT will invalidate existing Kerberos tickets across the domain."
+#     $newPassword = Read-Host "Enter a new complex password for the KRBTGT account" -AsSecureString
+#     try {
+#         Set-ADAccountPassword -Identity "krbtgt" -Reset -NewPassword $newPassword -ErrorAction Stop
+#         Write-Output "KRBTGT account password has been reset."
+#         Write-Output "IMPORTANT: Microsoft recommends performing a double reset of the KRBTGT account. Please plan accordingly."
+#     } catch {
+#         Write-Error "Failed to reset KRBTGT password: $_"
+#     }
+# } else {
+#     Write-Output "KRBTGT account password reset skipped."
+# }
 
 #############################################
 # 3. Enable Kerberos Auditing

@@ -12,14 +12,14 @@ catch {
 }
 
 # enable Kerberos Pre-Authentication for all users
-Write-Output "Enabling Kerberos Pre-Authentication for all users"
-try {
-    Set-ADDefaultDomainPasswordPolicy -PreAuthNotRequired $false
-    Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} | Set-ADUser -DoesNotRequirePreAuth $false -Confirm:$false
-}
-catch {
-    Write-Output "Failed to enable Kerberos Pre-Authentication for all users!"
-}
+# Write-Output "Enabling Kerberos Pre-Authentication for all users"
+# try {
+#     Set-ADDefaultDomainPasswordPolicy -PreAuthNotRequired $false
+#     Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} | Set-ADUser -DoesNotRequirePreAuth $false -Confirm:$false
+# }
+# catch {
+#     Write-Output "Failed to enable Kerberos Pre-Authentication for all users!"
+# }
 
 # Disable Spooler Service
 Write-Output "Disabling Print Spooler service"
