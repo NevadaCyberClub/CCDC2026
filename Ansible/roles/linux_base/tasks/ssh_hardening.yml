@@ -1,17 +1,17 @@
 ---
-- name: Set SSH PermitRootLogin to no
+- name: Set SSH PermitRootLogin to yes
   lineinfile:
     path: /etc/ssh/sshd_config
     regexp: '^#?PermitRootLogin'
-    line: 'PermitRootLogin no'
+    line: 'PermitRootLogin yes'
     backup: yes
   notify: restart sshd
 
-- name: Disable SSH password authentication
+- name: Enable SSH password authentication
   lineinfile:
     path: /etc/ssh/sshd_config
     regexp: '^#?PasswordAuthentication'
-    line: 'PasswordAuthentication no'
+    line: 'PasswordAuthentication yes'
     backup: yes
   notify: restart sshd
   when: disable_password_auth | default(false)

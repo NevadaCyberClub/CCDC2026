@@ -37,5 +37,4 @@
 # --- SSH Key Distribution ---
 - name: Distribute Ansible SSH keys
   tags: [setup, ssh]
-  include_tasks: ssh_keys.yml
-  when: ansible_ssh_public_key_file is defined
+  import_tasks: ssh_keys.yml
