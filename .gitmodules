@@ -1,0 +1,3 @@
+[submodule "WindowsServer/WindowsServer/ADPulse"]
+	path = WindowsServer/WindowsServer/ADPulse
+	url = https://github.com/dievus/ADPulse
