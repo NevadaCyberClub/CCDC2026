@@ -1,32 +1,36 @@
-# todo: make linux distribution agnostic
+---
+- name: Install Docker prerequisites
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
 
-- name: Remove Podman Docker
-  ansible.builtin.dnf:
-    name: podman-docker
-    state: absent
-
-- name: Install Repo Manager
-  ansible.builtin.dnf:
-    name: dnf-plugins-core
+- name: Add Docker GPG key
+  apt_key:
+    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
     state: present
 
 - name: Add Docker repository
-  ansible.builtin.command: >
-    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    state: present
 
-- name: Install Necessary Packages For Docker
-  ansible.builtin.package:
+- name: Install Docker packages
+  apt:
     name:
       - docker-ce
       - docker-ce-cli
-      - docker-compose-plugin
       - containerd.io
-      - httpd-tools
+      - docker-compose-plugin
     state: present
-    disable_gpg_check: true
+    update_cache: yes
 
-- name: Ensure Docker service is started and enabled
-  ansible.builtin.systemd:
+- name: Ensure Docker service is running
+  service:
     name: docker
     state: started
-    enabled: true
+    enabled: yes

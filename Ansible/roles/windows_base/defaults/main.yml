@@ -1,0 +1,7 @@
+---
+run_windows_update: false
+allow_reboot: false
+windows_essential_tools:
+  - 7zip
+  - notepadplusplus
+  - sysinternals

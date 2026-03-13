@@ -1,0 +1,24 @@
+<ossec_config>
+  <client>
+    <server>
+      <address>{{ wazuh_manager_ip }}</address>
+      <port>1514</port>
+      <protocol>tcp</protocol>
+    </server>
+  </client>
+  <syscheck>
+    <frequency>300</frequency>
+    <directories check_all="yes" report_changes="yes" {{ wazuh_fim_mode }}="yes">/etc,/usr/bin,/usr/sbin,/bin,/sbin,/root</directories>
+  </syscheck>
+  <rootcheck>
+    <disabled>no</disabled>
+  </rootcheck>
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/auth.log</location>
+  </localfile>
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/syslog</location>
+  </localfile>
+</ossec_config>

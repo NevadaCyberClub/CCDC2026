@@ -1,0 +1,27 @@
+---
+- name: Install auditd for whodata FIM
+  package:
+    name: "{{ 'auditd' if ansible_os_family == 'Debian' else 'audit' }}"
+    state: present
+
+- name: Enable auditd service
+  service:
+    name: auditd
+    state: started
+    enabled: yes
+
+- name: Configure Wazuh agent manager connection
+  template:
+    src: ossec.conf.j2
+    dest: /var/ossec/etc/ossec.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart wazuh-agent
+
+- name: Ensure Wazuh agent is running
+  service:
+    name: wazuh-agent
+    state: started
+    enabled: yes
+  ignore_errors: yes

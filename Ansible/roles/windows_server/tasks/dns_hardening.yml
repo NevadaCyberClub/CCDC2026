@@ -1,0 +1,11 @@
+---
+- name: Disable DNS recursion if not needed
+  win_shell: |
+    dnscmd /config /NoRecursion 1
+  when: disable_dns_recursion | default(false)
+  ignore_errors: yes
+
+- name: Enable DNS audit logging
+  win_shell: |
+    Set-DnsServerDiagnostics -All $true
+  ignore_errors: yes

@@ -1,0 +1,16 @@
+---
+- name: Disable unnecessary Windows services
+  win_service:
+    name: "{{ item }}"
+    state: stopped
+    start_mode: disabled
+  loop:
+    - RemoteRegistry
+    - WMPNetworkSvc
+    - Spooler
+    - lmhosts
+    - SSDPSRV
+    - upnphost
+    - XblAuthManager
+    - XblGameSave
+  ignore_errors: yes

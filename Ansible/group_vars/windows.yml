@@ -1,0 +1,5 @@
+---
+# Windows group variables
+windows_allowed_ports: []
+#  - { port: 80, name: "HTTP" }
+#  - { port: 443, name: "HTTPS" }

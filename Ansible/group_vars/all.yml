@@ -1,1 +1,4 @@
-internal_network_range: "192.168.210.0/24"
+---
+# Global variables for all hosts
+internal_network_range: "CHANGEME_SUBNET/24"
+ansible_control_node_ip: "CHANGEME_ANSIBLE_IP"

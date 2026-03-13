@@ -1,23 +1,27 @@
-- name: install perfSONAR archival node packages
-  tags: [ 'ps::install' ]
-  include_tasks: install_archive.yml
+---
+# RHEL/Rocky/CentOS-specific hardening and setup
 
-- name: Create firewalld public zone file with limited IPs
-  tags: [ 'ps::config' ]
-  template:
-    src: firewalld_public_zone.xml.j2
-    dest: /etc/firewalld/zones/public.xml
-    mode: '0644'
+- name: Gather facts
+  tags: always
+  setup:
 
-- name: reload firewalld
-  systemd_service:
-    name: firewalld
-    state: reloaded
+# --- Package Updates ---
+- name: Update packages
+  tags: [setup, packages]
+  include_tasks: yum_update.yml
 
-- name: install perfSONAR grafana packages
-  tags: [ 'ps::install' ]
-  include_tasks: install_grafana.yml
+# --- Install Essential Packages ---
+- name: Install essential packages
+  tags: [setup, packages]
+  include_tasks: install_packages.yml
 
-- name: setup perfSONAR configuration
-  tags: [ 'ps::config' ]
-  include_tasks: psconfig_setup.yml
+# --- Firewall (firewalld) ---
+- name: Configure firewalld
+  tags: [hardening, firewall]
+  include_tasks: firewall_firewalld.yml
+
+# --- Docker Install (optional) ---
+- name: Install Docker
+  tags: [setup, docker]
+  include_tasks: install_docker.yml
+  when: install_docker | default(false)

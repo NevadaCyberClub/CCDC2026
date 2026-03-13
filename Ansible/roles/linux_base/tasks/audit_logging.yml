@@ -1,0 +1,32 @@
+---
+- name: Install auditd
+  package:
+    name: "{{ auditd_package }}"
+    state: present
+
+- name: Configure audit rules for CCDC
+  copy:
+    dest: /etc/audit/rules.d/ccdc.rules
+    content: |
+      # Monitor authentication events
+      -w /etc/passwd -p wa -k passwd_changes
+      -w /etc/shadow -p wa -k shadow_changes
+      -w /etc/group -p wa -k group_changes
+      -w /etc/sudoers -p wa -k sudoers_changes
+      # Monitor SSH config
+      -w /etc/ssh/sshd_config -p wa -k sshd_config
+      # Monitor cron
+      -w /etc/crontab -p wa -k crontab_changes
+      -w /etc/cron.d -p wa -k cron_d_changes
+      -w /var/spool/cron -p wa -k user_crontabs
+      # Monitor systemd services
+      -w /etc/systemd/ -p wa -k systemd_changes
+      -w /lib/systemd/ -p wa -k systemd_lib_changes
+    mode: '0640'
+  notify: restart auditd
+
+- name: Ensure auditd is running
+  service:
+    name: auditd
+    state: started
+    enabled: yes

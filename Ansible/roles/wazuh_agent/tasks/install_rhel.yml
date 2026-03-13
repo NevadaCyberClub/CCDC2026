@@ -1,0 +1,16 @@
+---
+- name: Copy Wazuh agent rpm package
+  copy:
+    src: "wazuh-agent-4.14.2-1.x86_64.rpm"
+    dest: "/tmp/wazuh-agent.rpm"
+
+- name: Install Wazuh agent
+  dnf:
+    name: /tmp/wazuh-agent.rpm
+    state: present
+    disable_gpg_check: yes
+
+- name: Clean up rpm package
+  file:
+    path: /tmp/wazuh-agent.rpm
+    state: absent

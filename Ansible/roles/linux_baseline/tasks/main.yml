@@ -40,32 +40,10 @@
     content: "{{ os_report }}"
     dest: "{{ playbook_dir }}/host_reports/{{ inventory_hostname }}.txt"
 
-#- name: Create a new sudo user
-#  ansible.builtin.user:
-#    name: adminuser
-#    state: present
-#    groups: sudo
-#    append: yes
-
-#- name: Disable root SSH login
-#  ansible.builtin.lineinfile:
-#    path: /etc/ssh/sshd_config
-#    regexp: '^PermitRootLogin'
-#    line: 'PermitRootLogin no'
-#    backup: yes
-#  notify: Restart SSH
-
-- name: Install fail2ban (Debian/Ubuntu)
+- name: Install fail2ban
   ansible.builtin.package:
     name: fail2ban
     state: present
-  when: ansible_facts["os_family"] == "Debian"
-
-- name: Install fail2ban (RHEL/Fedora)
-  ansible.builtin.package:
-    name: fail2ban
-    state: present
-  when: ansible_facts["os_family"] == "RedHat"
 
 - name: Configure fail2ban jail.local
   ansible.builtin.copy:
@@ -75,7 +53,7 @@
       enabled = true
       port = ssh
       filter = sshd
-      logpath = /var/log/auth.log
+      # backend = systemd uses journal, so logpath is ignored
       backend = systemd
       maxretry = 5
       bantime = 1h

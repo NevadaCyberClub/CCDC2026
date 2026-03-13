@@ -1,55 +1,90 @@
-- name: Standard Linux Base Configuration (Debian)
-  hosts:
-    - debian_based
+---
+# ============================================================
+# CCDC 2026 - Main Playbook
+# ============================================================
+# Usage:
+#   Full run:       ansible-playbook ccdc.yml
+#   Setup only:     ansible-playbook ccdc.yml --tags setup
+#   Hardening:      ansible-playbook ccdc.yml --tags hardening
+#   IR tools:       ansible-playbook ccdc.yml --tags ir
+#   Linux only:     ansible-playbook ccdc.yml --tags linux
+#   Windows only:   ansible-playbook ccdc.yml --tags windows
+#   Single host:    ansible-playbook ccdc.yml --limit debian1
+# ============================================================
+
+# ----------------------------------------------------------
+# Stage 1: Setup - Base packages, updates, firewall
+# ----------------------------------------------------------
+
+- name: Linux Base Hardening (All Linux)
+  hosts: linux
+  tags: [setup, hardening, linux]
+  roles:
+    - linux_base
+
+- name: Debian/Ubuntu Setup
+  hosts: debian_based
+  tags: [setup, linux, debian]
   roles:
     - linux_debian
 
-- name: Standard Linux Base Configuration (RHEL)
-  hosts:
-    - rhel_based
+- name: RHEL/Rocky Setup
+  hosts: rhel_based
+  tags: [setup, linux, rhel]
   roles:
     - linux_rhel
 
-- name: Incident Response Client (Linux Debian)
-  hosts:
-    - debian_based
-  tags:
-    - ir_linux_debian
+- name: Windows Base Setup
+  hosts: windows
+  tags: [setup, windows]
   roles:
-    - ir_linux
+    - windows_base
 
-- name: Incident Response Client (Linux RHEL)
-  hosts:
-    - rhel_based
-  tags:
-    - ir_linux_rhel
+# ----------------------------------------------------------
+# Stage 2: Hardening - Service hardening, policies
+# ----------------------------------------------------------
+
+- name: Windows Hardening
+  hosts: windows
+  tags: [hardening, windows]
   roles:
-    - ir_linux
-
-- name: Incident Response Client (Windows)
-  hosts:
     - windows
-  tags:
-    - ir
-  roles:
-    - ir_windows
 
-- name: Incident Response Server
-  hosts:
-    - linux
-  tags:
-    - ir_linux_server
+- name: Windows Server / AD Hardening
+  hosts: windows_server
+  tags: [hardening, windows, ad]
   roles:
-    - ir_linux
+    - windows_server
 
-- name: linux baseline configuration
-  hosts:
-    - linux
+- name: Web Server Hardening
+  hosts: web
+  tags: [hardening, web]
+  roles:
+    - web
+
+# ----------------------------------------------------------
+# Stage 3: Baseline - Reporting and monitoring
+# ----------------------------------------------------------
+
+- name: Linux Baseline (fail2ban + reporting)
+  hosts: linux
+  tags: [baseline, linux]
   roles:
     - linux_baseline
 
-- name: Install Velociraptor client and server on remote hosts
-  hosts: velociraptor
-  become: yes
+# ----------------------------------------------------------
+# Stage 4: IR Tools - EDR and SIEM agents
+# ----------------------------------------------------------
+
+# - name: Deploy Velociraptor
+#   hosts: velociraptor_clients:velociraptor_server
+#   become: yes
+#   tags: [ir, velociraptor]
+#   roles:
+#     - ansible_velociraptor
+
+- name: Deploy Wazuh Agent
+  hosts: linux:!wazuh_server
+  tags: [ir, wazuh]
   roles:
-    - ansible_velociraptor
+    - wazuh_agent

@@ -1,0 +1,15 @@
+---
+- name: Disable unnecessary server features
+  win_feature:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - Telnet-Client
+    - TFTP-Client
+  ignore_errors: yes
+
+- name: Set event log sizes for server
+  win_shell: |
+    wevtutil sl Security /ms:2147483648
+    wevtutil sl Application /ms:1073741824
+    wevtutil sl System /ms:1073741824

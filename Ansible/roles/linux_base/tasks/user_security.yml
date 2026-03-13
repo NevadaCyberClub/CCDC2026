@@ -1,0 +1,32 @@
+---
+- name: Ensure sudo group exists
+  group:
+    name: "{{ sudo_group }}"
+    state: present
+
+- name: Create competition admin user
+  user:
+    name: "{{ ccdc_admin_user }}"
+    groups: "{{ sudo_group }}"
+    append: yes
+    shell: /bin/bash
+    create_home: yes
+    password: "{{ ccdc_admin_password_hash }}"
+  when: ccdc_admin_user | default('') | length > 0
+
+- name: Lock known default/weak accounts
+  user:
+    name: "{{ item }}"
+    password_lock: yes
+  loop: "{{ accounts_to_lock | default([]) }}"
+  ignore_errors: yes
+
+- name: Set password aging policy
+  lineinfile:
+    path: /etc/login.defs
+    regexp: "^{{ item.key }}"
+    line: "{{ item.key }} {{ item.value }}"
+  loop:
+    - { key: 'PASS_MAX_DAYS', value: '90' }
+    - { key: 'PASS_MIN_DAYS', value: '1' }
+    - { key: 'PASS_WARN_AGE', value: '7' }

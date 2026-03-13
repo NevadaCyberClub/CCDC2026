@@ -1,0 +1,15 @@
+---
+# Windows Server / Domain Controller variables
+windows_allowed_ports:
+  - { port: 53, name: "DNS", proto: "tcp" }
+  - { port: 53, name: "DNS-UDP", proto: "udp" }
+  - { port: 88, name: "Kerberos", proto: "tcp" }
+  - { port: 88, name: "Kerberos-UDP", proto: "udp" }
+  - { port: 135, name: "RPC" }
+  - { port: 389, name: "LDAP" }
+  - { port: 389, name: "LDAP-UDP", proto: "udp" }
+  - { port: 636, name: "LDAPS" }
+  - { port: 445, name: "SMB" }
+  - { port: 464, name: "Kerberos-Change" }
+  - { port: 3268, name: "GC" }
+  - { port: 3269, name: "GC-SSL" }

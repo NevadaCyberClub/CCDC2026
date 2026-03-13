@@ -1,0 +1,11 @@
+---
+- name: Install EPEL repository
+  dnf:
+    name: epel-release
+    state: present
+  ignore_errors: yes
+
+- name: Install essential RHEL packages
+  dnf:
+    name: "{{ rhel_essential_packages }}"
+    state: present

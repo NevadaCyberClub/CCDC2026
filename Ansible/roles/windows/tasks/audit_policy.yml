@@ -1,0 +1,28 @@
+---
+- name: Enable advanced audit policy
+  win_shell: |
+    auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
+    auditpol /set /category:"Account Logon" /success:enable /failure:enable
+    auditpol /set /category:"Account Management" /success:enable /failure:enable
+    auditpol /set /category:"Policy Change" /success:enable /failure:enable
+    auditpol /set /category:"System" /success:enable /failure:enable
+    auditpol /set /category:"Object Access" /failure:enable
+    auditpol /set /category:"Privilege Use" /success:enable /failure:enable
+
+- name: Enable PowerShell script block logging
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+    name: EnableScriptBlockLogging
+    data: 1
+    type: dword
+
+- name: Enable PowerShell module logging
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+    name: EnableModuleLogging
+    data: 1
+    type: dword
+
+- name: Increase Security Event Log size to 1GB
+  win_shell: |
+    wevtutil sl Security /ms:1073741824

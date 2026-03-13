@@ -1,0 +1,15 @@
+---
+- name: Install critical Windows updates
+  win_updates:
+    category_names:
+      - CriticalUpdates
+      - SecurityUpdates
+    state: installed
+    reboot: no
+  register: update_result
+
+- name: Reboot if required by updates
+  win_reboot:
+  when:
+    - update_result.reboot_required | default(false)
+    - allow_reboot | default(false)

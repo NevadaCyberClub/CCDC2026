@@ -1,0 +1,33 @@
+---
+- name: Remove Podman Docker if present
+  dnf:
+    name: podman-docker
+    state: absent
+  ignore_errors: yes
+
+- name: Install dnf-plugins-core
+  dnf:
+    name: dnf-plugins-core
+    state: present
+
+- name: Add Docker CE repository
+  command: >
+    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+
+- name: Install Docker packages
+  dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    disable_gpg_check: true
+
+- name: Ensure Docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: yes

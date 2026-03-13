@@ -1,1 +1,9 @@
-ssh_key_path: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+---
+# Web server group variables
+ufw_allowed_ports:
+  - { port: 22, proto: "tcp" }
+  - { port: 80, proto: "tcp" }
+  - { port: 443, proto: "tcp" }
+
+install_docker: false
+deploy_bunkerweb: false

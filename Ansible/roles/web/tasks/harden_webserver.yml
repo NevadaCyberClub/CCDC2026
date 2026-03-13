@@ -1,0 +1,31 @@
+---
+- name: Remove default web server pages (Apache)
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/www/html/index.html
+    - /usr/share/httpd/noindex/
+  ignore_errors: yes
+
+- name: Disable server signature (Apache)
+  lineinfile:
+    path: "{{ apache_conf_path }}"
+    regexp: '^ServerSignature'
+    line: 'ServerSignature Off'
+  ignore_errors: yes
+
+- name: Disable server tokens (Apache)
+  lineinfile:
+    path: "{{ apache_conf_path }}"
+    regexp: '^ServerTokens'
+    line: 'ServerTokens Prod'
+  ignore_errors: yes
+
+- name: Disable server tokens (Nginx)
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: '^\s*#?\s*server_tokens'
+    line: '    server_tokens off;'
+    insertafter: 'http {'
+  ignore_errors: yes

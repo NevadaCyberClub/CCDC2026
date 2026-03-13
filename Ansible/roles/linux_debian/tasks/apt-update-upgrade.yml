@@ -1,11 +1,11 @@
 ---
-- name: Upgrade Debian-based systems
-  hosts: debian_based
-  become: yes
-  tasks:
-    - name: Update repos
-      ansible.builtin.apt:
-        update_cache: yes
-    - name: Upgrade packages
-      ansible.builtin.apt:
-        upgrade: dist
+# DEPRECATED: Use apt_update.yml instead. Kept for backwards compatibility.
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+  when: apt_dist_upgrade | default(true)

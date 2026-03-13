@@ -1,0 +1,21 @@
+---
+- name: Set RDP to require NLA
+  win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp
+    name: UserAuthentication
+    data: 1
+    type: dword
+
+- name: Set minimum RDP encryption level
+  win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp
+    name: MinEncryptionLevel
+    data: 3
+    type: dword
+
+- name: Limit RDP session timeout (15 min)
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+    name: MaxIdleTime
+    data: 900000
+    type: dword

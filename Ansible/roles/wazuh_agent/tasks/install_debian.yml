@@ -1,0 +1,15 @@
+---
+- name: Copy Wazuh agent deb package
+  copy:
+    src: "wazuh-agent_4.14.2-1_amd64.deb"
+    dest: "/tmp/wazuh-agent.deb"
+
+- name: Install Wazuh agent
+  apt:
+    deb: /tmp/wazuh-agent.deb
+    state: present
+
+- name: Clean up deb package
+  file:
+    path: /tmp/wazuh-agent.deb
+    state: absent

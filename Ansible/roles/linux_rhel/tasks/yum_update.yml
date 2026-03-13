@@ -1,0 +1,6 @@
+---
+- name: Update all packages
+  dnf:
+    name: '*'
+    state: latest
+  when: rhel_update_packages | default(true)

@@ -1,0 +1,4 @@
+---
+is_domain_controller: false
+is_dns_server: false
+disable_dns_recursion: false

@@ -1,0 +1,10 @@
+---
+- name: restart sshd
+  service:
+    name: "{{ ssh_service }}"
+    state: restarted
+
+- name: restart auditd
+  service:
+    name: auditd
+    state: restarted

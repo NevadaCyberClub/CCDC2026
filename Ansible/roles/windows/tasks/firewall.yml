@@ -1,0 +1,46 @@
+---
+- name: Enable Windows Firewall for all profiles
+  win_firewall:
+    state: enabled
+    profiles:
+      - Domain
+      - Private
+      - Public
+
+- name: Block inbound by default
+  win_shell: |
+    Set-NetFirewallProfile -Profile Domain,Public,Private -DefaultInboundAction Block
+
+- name: Allow inbound RDP from competition network only
+  win_firewall_rule:
+    name: "CCDC Allow RDP"
+    localport: 3389
+    action: allow
+    direction: in
+    protocol: tcp
+    remoteip: "{{ internal_network_range }}"
+    state: present
+    enabled: yes
+
+- name: Allow inbound WinRM from control node
+  win_firewall_rule:
+    name: "CCDC Allow WinRM"
+    localport: 5985-5986
+    action: allow
+    direction: in
+    protocol: tcp
+    remoteip: "{{ ansible_control_node_ip | default(internal_network_range) }}"
+    state: present
+    enabled: yes
+
+- name: Allow additional service ports
+  win_firewall_rule:
+    name: "CCDC Allow {{ item.name | default(item.port) }}"
+    localport: "{{ item.port }}"
+    action: allow
+    direction: in
+    protocol: "{{ item.proto | default('tcp') }}"
+    remoteip: "{{ item.from | default('any') }}"
+    state: present
+    enabled: yes
+  loop: "{{ windows_allowed_ports | default([]) }}"

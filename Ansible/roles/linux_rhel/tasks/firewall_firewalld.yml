@@ -1,0 +1,34 @@
+---
+- name: Ensure firewalld is installed
+  dnf:
+    name: firewalld
+    state: present
+
+- name: Ensure firewalld is running
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Set default zone to drop
+  command: firewall-cmd --set-default-zone=drop
+  changed_when: false
+
+- name: Allow SSH in firewalld
+  firewalld:
+    service: ssh
+    permanent: yes
+    state: enabled
+    zone: public
+
+- name: Allow additional service ports
+  firewalld:
+    port: "{{ item.port }}/{{ item.proto }}"
+    permanent: yes
+    state: enabled
+    zone: public
+  loop: "{{ firewalld_allowed_ports | default([]) }}"
+
+- name: Reload firewalld
+  command: firewall-cmd --reload
+  changed_when: false

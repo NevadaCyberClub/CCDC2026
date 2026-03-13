@@ -1,0 +1,6 @@
+---
+# IMPORTANT: Encrypt this file before competition!
+# Run: ansible-vault encrypt group_vars/vault.yml
+vault_windows_password: "CHANGEME"
+vault_velociraptor_admin_password: "CHANGEME"
+vault_ccdc_admin_password_hash: "CHANGEME"

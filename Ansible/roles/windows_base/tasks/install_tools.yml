@@ -1,0 +1,13 @@
+---
+- name: Ensure Chocolatey is installed
+  win_chocolatey:
+    name: chocolatey
+    state: present
+  ignore_errors: yes
+
+- name: Install essential Windows tools via Chocolatey
+  win_chocolatey:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ windows_essential_tools }}"
+  ignore_errors: yes

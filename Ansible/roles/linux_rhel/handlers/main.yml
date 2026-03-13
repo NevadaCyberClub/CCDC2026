@@ -1,7 +1,5 @@
 ---
-# handlers file for perfsonar-archive
-
-- name: restart apache
+- name: restart firewalld
   service:
-    name: "{{ apache_service }}"
+    name: firewalld
     state: restarted

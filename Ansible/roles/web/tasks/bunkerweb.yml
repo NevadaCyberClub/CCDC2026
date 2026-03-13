@@ -1,7 +1,27 @@
-- name: Install bunkerweb
-  hosts: web
-  roles:
-    - bunkerity.bunkerweb
-  become: true
-  vars:
-    enable_ui: true
+---
+- name: Create BunkerWeb directory
+  file:
+    path: /opt/bunkerweb
+    state: directory
+    mode: '0750'
+
+- name: Deploy BunkerWeb docker-compose
+  copy:
+    dest: /opt/bunkerweb/docker-compose.yml
+    content: |
+      version: '3'
+      services:
+        bunkerweb:
+          image: bunkerity/bunkerweb:latest
+          ports:
+            - "{{ bunkerweb_http_port | default('80') }}:8080"
+            - "{{ bunkerweb_https_port | default('443') }}:8443"
+          environment:
+            - SERVER_NAME={{ bunkerweb_server_name | default('') }}
+          restart: unless-stopped
+    mode: '0640'
+
+- name: Start BunkerWeb
+  command: docker compose -f /opt/bunkerweb/docker-compose.yml up -d
+  args:
+    chdir: /opt/bunkerweb

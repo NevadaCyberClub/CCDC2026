@@ -1,0 +1,28 @@
+---
+- name: Disable Windows Script Host
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings
+    name: Enabled
+    data: 0
+    type: dword
+  when: disable_wsh | default(false)
+
+- name: Disable LLMNR
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient
+    name: EnableMulticast
+    data: 0
+    type: dword
+
+- name: Disable NetBIOS over TCP/IP on all interfaces
+  win_shell: |
+    $adapters = Get-WmiObject Win32_NetworkAdapterConfiguration -Filter "IPEnabled=True"
+    foreach ($adapter in $adapters) { $adapter.SetTcpipNetbios(2) }
+  ignore_errors: yes
+
+- name: Disable WPAD
+  win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\WinHttpAutoProxySvc
+    name: Start
+    data: 4
+    type: dword

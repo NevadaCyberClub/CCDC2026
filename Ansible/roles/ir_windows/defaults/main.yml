@@ -1,7 +1,0 @@
-client: true
-velociraptor_admin_user: admin
-velociraptor_admin_password: sec699
-velociraptor_client_config: Velociraptor.config.yaml
-velociraptor_msi_url: https://github.com/Velocidex/velociraptor/releases/download/v0.75/velociraptor-v0.75.3-windows-amd64.msi
-velociraptor_file: velociraptor-msi
-velociraptor_windows_dir: C:\Program Files\Velociraptor\

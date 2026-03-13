@@ -1,0 +1,11 @@
+---
+- name: Install Wazuh agent (Debian)
+  include_tasks: install_debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Install Wazuh agent (RHEL)
+  include_tasks: install_rhel.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Configure Wazuh agent
+  include_tasks: configure_agent.yml

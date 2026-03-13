@@ -1,10 +1,2 @@
-docker_webadmin_deploy_path: /opt/perfsonar-webadmin-deploy
-
-docker_host: "unix:///var/run/docker.sock"
-
-webadmin_docker_containers:
-  - mongo
-  - sca-auth
-  - pwa-admin1
-  - pwa-pub1
-  - nginx
+---
+# Windows Server role variables

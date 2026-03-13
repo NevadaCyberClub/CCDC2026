@@ -1,0 +1,11 @@
+---
+- name: Ensure WinRM service is running
+  win_service:
+    name: WinRM
+    start_mode: auto
+    state: started
+
+- name: Configure WinRM to disallow unencrypted traffic
+  win_shell: |
+    winrm set winrm/config/service '@{AllowUnencrypted="false"}'
+  ignore_errors: yes

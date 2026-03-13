@@ -1,0 +1,4 @@
+---
+deploy_bunkerweb: false
+bunkerweb_http_port: "80"
+bunkerweb_https_port: "443"

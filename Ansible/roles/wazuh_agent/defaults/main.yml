@@ -1,0 +1,3 @@
+---
+wazuh_manager_ip: "CHANGEME"
+wazuh_fim_mode: "whodata"

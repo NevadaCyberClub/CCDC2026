@@ -1,24 +1,16 @@
 ---
-- name: Gather facts to load OS information
+- name: Gather facts
   tags: always
   setup:
-  become: no
 
-- name: Load variables based on OS type
-  tags: always
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
-    - "{{ ansible_distribution }}.yml"
-    - "{{ ansible_os_family }}.yml"
+- name: Gather service facts
+  service_facts:
 
-- name: Disable ssh root access
-  tags: [ 'ps::config' ]
-  lineinfile:
-    state: present
-    dest: /etc/ssh/sshd_config
-    regexp: "^PermitRootLogin "
-    line: "PermitRootLogin no"
-  when: perfsonar_disable_root_ssh
-  notify:
-    - restart ssh
+- name: Harden web server
+  tags: [hardening, web]
+  include_tasks: harden_webserver.yml
+
+- name: Deploy BunkerWeb WAF
+  tags: [setup, waf]
+  include_tasks: bunkerweb.yml
+  when: deploy_bunkerweb | default(false)

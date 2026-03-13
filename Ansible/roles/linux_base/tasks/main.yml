@@ -1,24 +1,40 @@
 ---
-- name: Gather facts to load OS information
+# Common Linux hardening -- applies to ALL Linux hosts (Debian + RHEL)
+
+- name: Gather facts
   tags: always
   setup:
-  become: no
 
-- name: Load variables based on OS type
+- name: Load OS-specific variables
   tags: always
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
-    - "{{ ansible_distribution }}.yml"
-    - "{{ ansible_os_family }}.yml"
+  include_vars: "{{ ansible_os_family }}.yml"
 
-- name: Disable ssh root access
-  tags: [ 'ps::config' ]
-  lineinfile:
-    state: present
-    dest: /etc/ssh/sshd_config
-    regexp: "^PermitRootLogin "
-    line: "PermitRootLogin no"
-  when: perfsonar_disable_root_ssh
-  notify:
-    - restart ssh
+# --- SSH Hardening ---
+- name: Harden SSH configuration
+  tags: [hardening, ssh]
+  include_tasks: ssh_hardening.yml
+
+# --- User Account Security ---
+- name: Secure user accounts
+  tags: [hardening, users]
+  include_tasks: user_security.yml
+
+# --- Remove Unnecessary Services ---
+- name: Disable unnecessary services
+  tags: [hardening, services]
+  include_tasks: disable_services.yml
+
+# --- Kernel Hardening (sysctl) ---
+- name: Apply kernel hardening parameters
+  tags: [hardening, kernel]
+  include_tasks: sysctl_hardening.yml
+
+# --- Audit Logging ---
+- name: Configure audit logging
+  tags: [hardening, audit]
+  include_tasks: audit_logging.yml
+
+# --- SSH Key Distribution ---
+- name: Distribute Ansible SSH keys
+  tags: [setup, ssh]
+  import_tasks: ssh_keys.yml

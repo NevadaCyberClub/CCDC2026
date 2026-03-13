@@ -1,0 +1,23 @@
+---
+- name: Set account lockout policy
+  win_shell: |
+    net accounts /lockoutthreshold:5
+    net accounts /lockoutduration:30
+    net accounts /lockoutwindow:30
+
+- name: Set password policy
+  win_shell: |
+    net accounts /minpwlen:12
+    net accounts /maxpwage:90
+    net accounts /minpwage:1
+    net accounts /uniquepw:5
+
+- name: Disable Guest account
+  win_user:
+    name: Guest
+    account_disabled: yes
+
+- name: Enable audit policy for AD
+  win_shell: |
+    auditpol /set /subcategory:"Directory Service Changes" /success:enable /failure:enable
+    auditpol /set /subcategory:"Directory Service Access" /success:enable /failure:enable

@@ -1,1 +1,10 @@
-ssh_key_path: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+---
+# RHEL/Rocky/CentOS group variables
+ssh_pub_key: "{{ lookup('file', './ssh_keys/ansible.pub', errors='ignore') | default('') }}"
+
+firewalld_allowed_ports:
+  - { port: 22, proto: "tcp" }
+#  - { port: 80, proto: "tcp" }
+#  - { port: 443, proto: "tcp" }
+
+install_docker: false

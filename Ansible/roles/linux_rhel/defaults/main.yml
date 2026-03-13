@@ -1,0 +1,7 @@
+---
+rhel_update_packages: true
+install_docker: false
+firewalld_allowed_ports: []
+# Example:
+#  - { port: '80', proto: 'tcp' }
+#  - { port: '443', proto: 'tcp' }

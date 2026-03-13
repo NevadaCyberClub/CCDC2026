@@ -1,37 +1,6 @@
 ---
-fwports:
-  - port: 443
-    proto: tcp
-
-  - port: 861
-    proto: tcp
-
-  - port: 8760-9960
-    proto: tcp
-
-  - port: 862
-    proto: tcp
-
-  - port: 18760-19960
-    proto: tcp
-
-  - port: 18760-19960
-    proto: udp
-
-  - port: 5890-5900
-    proto: tcp
-
-  - port: 5000
-    proto: tcp
-
-  - port: 5101
-    proto: tcp
-
-  - port: 5001
-    proto: tcp
-
-  - port: 5201
-    proto: tcp
-
-  - port: 123
-    proto: udp
+windows_allowed_ports: []
+disable_wsh: false
+# Example:
+#  - { name: 'HTTP', port: '80', proto: 'tcp' }
+#  - { name: 'HTTPS', port: '443', proto: 'tcp' }

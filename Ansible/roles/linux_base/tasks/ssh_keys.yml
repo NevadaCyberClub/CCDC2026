@@ -1,0 +1,6 @@
+---
+- name: Deploy authorized SSH key
+  authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ lookup('file', ansible_ssh_public_key_file) }}"

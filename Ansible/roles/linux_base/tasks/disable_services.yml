@@ -1,0 +1,12 @@
+---
+- name: Gather service facts
+  service_facts:
+
+- name: Disable unnecessary services if present
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  loop: "{{ unnecessary_services }}"
+  when: "item + '.service' in ansible_facts.services or item in ansible_facts.services"
+  ignore_errors: yes
